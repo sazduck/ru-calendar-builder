@@ -1,26 +1,25 @@
-import fs from 'node:fs/promises';
-
 interface Transfer {
   from: string;
   to: string;
 }
 type CalendarType = 'working' | 'non_working' | 'shortened';
 
+interface DayMeta {
+  isShortened?: boolean;
+  isTransferred?: boolean;
+  transferTargetDate?: string;
+  holidayName?: string;
+}
+
 interface Day {
   date: string;
   type: CalendarType;
-  reason?: string;
+  meta?: DayMeta;
 }
 
-type DayObj = Record<
-  string,
-  {
-    type: CalendarType;
-    reason?: string;
-  }
->;
+type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
-const parseTransfers = (str: string) => {
+export const parseTransfers = (str: string): Result<Transfer[]> => {
   const year = str.match(/\d{4}/);
   const months: Record<string, string> = {
     января: '01',
@@ -44,18 +43,17 @@ const parseTransfers = (str: string) => {
   const res: Transfer[] = [];
   for (let m of matches) {
     if (!m[1] || !m[2] || !m[3] || !m[4]) {
-      console.error(new Error('ошибка парсинга'));
-      return null;
+      return { ok: false, error: new Error('ошибка парсинга') };
     }
     res.push({
       from: year + '-' + months[m[2]] + '-' + m[1].padStart(2, '0'),
       to: year + '-' + months[m[4]] + '-' + m[3].padStart(2, '0'),
     });
   }
-  return res;
+  return { ok: true, value: res };
 };
 
-const buildCalendar = (year: string, transfers: Transfer[]) => {
+export const buildCalendar = (year: string, transfers: Transfer[]) => {
   const holidays = {
     [year + '-01-01']: 'Новый год',
     [year + '-01-02']: 'Новогодние каникулы',
@@ -91,7 +89,9 @@ const buildCalendar = (year: string, transfers: Transfer[]) => {
 
     if (isHoliday) {
       currentDay.type = 'non_working';
-      currentDay.reason = holidays[isoDate]!;
+      currentDay.meta = {
+        holidayName: holidays[isoDate],
+      };
     } else if (transferTo) {
       currentDay.type = 'non_working';
       currentDay.reason = transferTo.from;
@@ -104,26 +104,16 @@ const buildCalendar = (year: string, transfers: Transfer[]) => {
 
     const nextDay = new Date(d);
     nextDay.setDate(nextDay.getDate() + 1);
-    const preholidayOf = Object.keys(holidays).find(
+    const tomorrowHolidayDate = Object.keys(holidays).find(
       (h) => h === nextDay.toISOString().substring(0, 10),
     );
-    if (currentDay.type === 'working' && preholidayOf) {
+    if (currentDay.type === 'working' && tomorrowHolidayDate) {
       currentDay.type = 'shortened';
-      currentDay.reason = holidays[preholidayOf]!;
+      currentDay.reason = holidays[tomorrowHolidayDate]!;
     }
     calendar.push(currentDay);
   }
   return calendar;
-};
-
-const transformCalendarToObj = (calendar: Day[]) => {
-  return calendar.reduce((acc: DayObj, el) => {
-    acc[el.date] = {
-      type: el.type,
-      ...(el.reason ? { reason: el.reason } : {}),
-    };
-    return acc;
-  }, {} as DayObj);
 };
 
 if (import.meta.main) {
@@ -133,25 +123,10 @@ if (import.meta.main) {
 
 	с воскресенья 4 января на четверг 31 декабря.`;
 
-  const calendar = buildCalendar('2026', parseTransfers(str) || []);
-  const calendarObj = transformCalendarToObj(calendar);
-
-  const outPath = 'dist/';
-  try {
-    await fs.mkdir(outPath);
-    console.log(`создан каталог ${outPath}`);
-  } catch (err) {
-    if (!(err instanceof Error && 'code' in err && err.code === 'EEXIST')) {
-      throw err;
-    }
+  const transfers = parseTransfers(str) || [];
+  if (!transfers.ok) {
+    throw transfers.error;
   }
-  const jsonFileName = outPath + 'out.json';
-  await fs.writeFile(jsonFileName, JSON.stringify(calendar), {
-    encoding: 'utf-8',
-    flag: 'w+',
-  });
-  await fs.writeFile('outObj.json', JSON.stringify(calendarObj), {
-    encoding: 'utf-8',
-    flag: 'w+',
-  });
+  const calendar = buildCalendar('2026', transfers.value);
+  console.log(JSON.stringify(calendar));
 }

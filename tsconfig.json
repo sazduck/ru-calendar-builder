@@ -2,6 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
+    "baseUrl": "./src",
     "rootDir": "./src",
     "outDir": "./dist",
 
@@ -9,12 +10,15 @@
     // See also https://aka.ms/tsconfig/module
     "module": "NodeNext",
     "target": "ESNext",
+    "allowImportingTsExtensions": true,
+    "removeComments": true,
     // "types": [],
     // For nodejs:
     "lib": ["esnext"],
     "types": ["node"],
     // and npm install -D @types/node
 
+    "noEmit": true,
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
@@ -28,7 +32,9 @@
     // "noImplicitReturns": true,
     // "noImplicitOverride": true,
     // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "skipDefaultLibCheck": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 

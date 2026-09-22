@@ -2,14 +2,8 @@ type CalendarType = 'working' | 'non_working' | 'shortened';
 
 export interface DayMeta {
   holidayName?: string | undefined;
-
-  transferedFrom?: {
-    date: string;
-  };
-
-  transferedTo?: {
-    date: string;
-  };
+  transferedFrom?: string;
+  transferedTo?: string;
 }
 
 export interface Day {

@@ -2,13 +2,16 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "baseUrl": "./src",
-    "rootDir": "./src",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@cli/*": ["./cli/*"]
+    },
     "outDir": "./dist",
+    "moduleResolution": "bundler",
+    "module": "esnext",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "NodeNext",
     "target": "ESNext",
     "allowImportingTsExtensions": true,
     "removeComments": true,

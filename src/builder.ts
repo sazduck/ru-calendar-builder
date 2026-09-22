@@ -67,21 +67,21 @@ export const getCalendarDay = (date: Date, transfers: DayOffTransfer[]) => {
     }
   }
 
-  let holidayName = HOLIDAYS[mmdd];
-  if (holidayName) {
+  if (mmdd in HOLIDAYS) {
     curDay.type = 'dayOff';
     curDay.meta = {
       ...curDay.meta,
-      holidayName,
+      holidayName: HOLIDAYS[mmdd],
     };
     return curDay;
   }
 
-  holidayName = HOLIDAYS[getNextDayMmdd(date)];
+  let holidayName = HOLIDAYS[getNextDayMmdd(date)];
   if (transferredTo) {
     holidayName = HOLIDAYS[getNextDayMmdd(transferredTo)];
-  }
-  if (holidayName) {
+  } else if (isCurDayWeekend) {
+    curDay.type = 'dayOff';
+  } else if (holidayName) {
     curDay.type = 'shortened';
     curDay.meta = {
       ...curDay.meta,

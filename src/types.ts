@@ -1,20 +1,20 @@
-type CalendarType = 'working' | 'non_working' | 'shortened';
+type DayType = 'working' | 'dayOff' | 'shortened';
 
 export interface DayMeta {
   holidayName?: string | undefined;
-  transferedFrom?: string;
-  transferedTo?: string;
+  transferredFrom?: string;
+  transferredTo?: string;
 }
 
 export interface Day {
   date: string;
-  type: CalendarType;
+  type: DayType;
   meta?: DayMeta | undefined;
 }
 
-export interface Transfer {
-  from: string;
-  to: string;
+export interface DayOffTransfer {
+  originalDate: string;
+  newDate: string;
 }
 
 export type Result<T, E = Error> =

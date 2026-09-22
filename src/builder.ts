@@ -1,5 +1,4 @@
-import { nextDay } from 'date-fns/fp';
-import type { Day, Transfer } from './types';
+import type { Day, DayOffTransfer } from './types';
 
 const HOLIDAYS: Record<string, string> = {
   '01-01': 'Новый год',
@@ -18,82 +17,82 @@ const HOLIDAYS: Record<string, string> = {
   '11-04': 'День народного единства',
 } as const;
 
-export const getCalendarDay = (date: Date, transfers: Transfer[]) => {
-  const mmdd = date.toISOString().substring(5, 10);
-  const year = date.getFullYear();
-  const currentDay: Day = {
-    // default
-    date: `${year}-${mmdd}`,
-    type: 'working',
-  };
-  const isCurrentDayHoliday = mmdd in HOLIDAYS;
-  const transferedTo = transfers.find(tr => tr.from === `${year}-${mmdd}`)?.to;
-  const transferedFrom = transfers.find((tr) => tr.to === `${year}-${mmdd}`)?.from;
-
-  const isCurrentDayWeekend = [6, 0].includes(date.getDay());
-
-  if (isCurrentDayHoliday) {
-    currentDay.type = 'non_working';
-    currentDay.meta = {
-      holidayName: HOLIDAYS[mmdd],
-    };
-    return currentDay;
-  }
-
-  if (transferedFrom) {
-    currentDay.meta = {
-      transferedFrom: transferedFrom,
-    };
-
-    const isTransferedDayHoliday = transferedFrom.substring(5) in HOLIDAYS
-    if (isTransferedDayHoliday) {
-      currentDay.type = 'non_working';
-      currentDay.meta!.holidayName = HOLIDAYS[transferedFrom!.substring(5)]
-      return currentDay;
-    }
-
-    const isTransferedDayWeekend = [6, 0].includes(new Date(transferedFrom).getDay());
-    if (isTransferedDayWeekend) {
-      currentDay.type = 'non_working';
-      return currentDay
-    }
-  }
-
-
-  if (transferedTo) {
-    currentDay.meta = {
-      transferedTo: transferedTo,
-    };
-  } else if (isCurrentDayWeekend) {
-    currentDay.type = 'non_working';
-  }
-
-  const getNextDayMmdd = (date: Date | string) => {
-    const nextDay = new Date(date);
-    nextDay.setDate(nextDay.getDate() + 1);
-    return nextDay.toISOString().substring(5, 10);
-  }
-
-  const nextMmdd = getNextDayMmdd(date)
-
-  const tomorrowHoliday = HOLIDAYS[nextMmdd];
-
-  if (tomorrowHoliday ||
-    transferedFrom && getNextDayMmdd(transferedFrom) in HOLIDAYS ||
-    transferedTo && getNextDayMmdd(transferedTo) in HOLIDAYS
-
-  ) {
-    currentDay.type = 'shortened';
-    currentDay.meta = {
-      ...currentDay.meta,
-      holidayName: tomorrowHoliday,
-    };
-  }
-
-  return currentDay;
+const getNextDayMmdd = (date: Date | string) => {
+  const nextDay = new Date(date);
+  nextDay.setDate(nextDay.getDate() + 1);
+  return nextDay.toISOString().substring(5, 10);
 };
 
-export const buildCalendar = (year: string, transfers?: Transfer[] | []) => {
+export const getCalendarDay = (date: Date, transfers: DayOffTransfer[]) => {
+  const isoDate = date.toISOString().substring(0, 10);
+  const mmdd = isoDate.substring(5);
+  const curDay: Day = {
+    date: isoDate,
+    type: 'working', // default
+  };
+
+  const isCurDayWeekend = [6, 0].includes(date.getDay());
+
+  const transferredTo = transfers.find((tr) => tr.originalDate === isoDate)?.newDate;
+  if (transferredTo) {
+    curDay.meta = { transferredTo };
+
+    const toHolidayName =
+      HOLIDAYS[transferredTo.substring(5)];
+    if (toHolidayName) {
+      curDay.meta.holidayName = toHolidayName;
+    }
+  } else if (isCurDayWeekend) {
+    curDay.type = 'dayOff';
+  }
+
+  const transferredFrom = transfers.find((tr) => tr.newDate === isoDate)?.originalDate;
+  if (transferredFrom) {
+    curDay.meta = { transferredFrom };
+
+    const fromHolidayName =
+      HOLIDAYS[transferredFrom.substring(5)];
+    if (fromHolidayName) {
+      curDay.type = 'dayOff';
+      curDay.meta.holidayName = fromHolidayName;
+      return curDay;
+    }
+
+    const isFromWeekend = [6, 0].includes(
+      new Date(transferredFrom).getDay(),
+    );
+    if (isFromWeekend) {
+      curDay.type = 'dayOff';
+      return curDay;
+    }
+  }
+
+  let holidayName = HOLIDAYS[mmdd];
+  if (holidayName) {
+    curDay.type = 'dayOff';
+    curDay.meta = {
+      ...curDay.meta,
+      holidayName,
+    };
+    return curDay;
+  }
+
+  holidayName = HOLIDAYS[getNextDayMmdd(date)];
+  if (transferredTo) {
+    holidayName = HOLIDAYS[getNextDayMmdd(transferredTo)];
+  }
+  if (holidayName) {
+    curDay.type = 'shortened';
+    curDay.meta = {
+      ...curDay.meta,
+      holidayName
+    };
+  }
+
+  return curDay;
+};
+
+export const buildCalendar = (year: string, transfers?: DayOffTransfer[] | []) => {
   const calendar: Day[] = [];
 
   const startDate = new Date(year + '-01-01');

@@ -1,5 +1,5 @@
 import { parseTransfers } from '@/parser';
-import type { Transfer } from '@/types'
+import type { DayOffTransfer } from '@/types'
 import { describe, expect, it } from 'vitest';
 
 
@@ -12,9 +12,9 @@ describe('parseTransfers', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toEqual([
-        { from: '2026-01-03', to: '2026-01-09' },
-        { from: '2026-01-04', to: '2026-12-31' },
-      ] satisfies Transfer[]);
+        { originalDate: '2026-01-03', newDate: '2026-01-09' },
+        { originalDate: '2026-01-04', newDate: '2026-12-31' },
+      ] satisfies DayOffTransfer[]);
     }
   });
 

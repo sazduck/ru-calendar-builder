@@ -1,18 +1,18 @@
-import { getCalendarDay } from '@/builder';
-import type { Day, Transfer } from '@/types';
+import { buildCalendar, getCalendarDay } from '@/builder';
+import type { Day, DayOffTransfer } from '@/types';
 import { describe, it, expect } from 'vitest';
 
+const transfers2024: DayOffTransfer[] = [
+  { originalDate: '2024-01-06', newDate: '2024-05-10' },
+  { originalDate: '2024-01-07', newDate: '2024-12-31' },
+  { originalDate: '2024-04-27', newDate: '2024-04-29' },
+  { originalDate: '2024-11-02', newDate: '2024-04-30' },
+  { originalDate: '2024-12-28', newDate: '2024-12-30' },
+];
+
 describe('getCalendarDay', () => {
-  const transfers2024: Transfer[] = [
-    { from: '2024-01-06', to: '2024-05-10' },
-    { from: '2024-01-07', to: '2024-12-31' },
-    { from: '2024-04-27', to: '2024-04-29' },
-    { from: '2024-11-02', to: '2024-04-30' },
-    { from: '2024-12-28', to: '2024-12-30' },
-  ];
-
-  const get2024CalendarDay = (date: string) => getCalendarDay(new Date(date), transfers2024);
-
+  const get2024CalendarDay = (date: string) =>
+    getCalendarDay(new Date(date), transfers2024);
 
   it('возвращает working для обычного буднего', () => {
     const day = get2024CalendarDay('2024-01-09');
@@ -21,35 +21,34 @@ describe('getCalendarDay', () => {
     expect(day.date).toBe('2024-01-09');
   });
 
-  it('возвращает non_working для обычной субботы или воскресенья', () => {
+  it('возвращает dayOff для обычной субботы или воскресенья', () => {
     const saturday = get2024CalendarDay('2024-01-13');
-    expect(saturday.type).toEqual('non_working');
+    expect(saturday.type).toBe('dayOff');
 
     const sunday = get2024CalendarDay('2024-01-14');
-    expect(sunday.type).toEqual('non_working');
+    expect(sunday.type).toBe('dayOff');
   });
 
-  it('возвращает non_working с holidayName для праздника', () => {
-    const day = get2024CalendarDay('2024-01-01')
+  it('возвращает dayOff с holidayName для праздника', () => {
+    const day = get2024CalendarDay('2024-01-01');
 
-    expect(day.type).toBe('non_working');
+    expect(day.type).toBe('dayOff');
     expect(day.meta?.holidayName).toBe('Новый год');
   });
 
-  it('возвращает non_working с holidayName и с transfedTo для перенсенного выходного праздника', () => {
+  it('возвращает dayOff с holidayName и с transferredTo для перенсенного праздника', () => {
     const day = get2024CalendarDay('2024-01-07');
 
-    expect(day.type).toBe('non_working');
-    expect(day.meta?.holidayName).toBeDefined();;
-    expect(day.meta?.transferedTo).toBeDefined();
-
+    expect(day.type).toBe('dayOff');
+    expect(day.meta?.transferredTo).toBeDefined();
+    expect(day.meta?.holidayName).toBe('Рождество Христово');
   });
 
-  it('возвращает non_working для перенсенного выходного не праздника', () => {
+  it('возвращает dayOff для перенесенного выходного не праздника', () => {
     const day = get2024CalendarDay('2024-04-29');
 
-    expect(day.type).toBe('non_working');
-    expect(day.meta?.transferedFrom).toBeDefined();
+    expect(day.type).toBe('dayOff');
+    expect(day.meta?.transferredFrom).toBe('2024-04-27');
     expect(day.meta?.holidayName).toBeUndefined();
   });
 
@@ -57,20 +56,510 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-04-27');
 
     expect(day.type).toBe('working');
-    expect(day.meta?.transferedTo).toBeDefined();
+    expect(day.meta?.transferredTo).toBe('2024-04-29');
   });
 
-  it('возвращает shortened для предпраздничного перенесеного дня', () => {
+  it('возвращает shortened с transferedTo для перенесенного предпраздничного дня', () => {
     const day = get2024CalendarDay('2024-11-02');
 
     expect(day.type).toBe('shortened');
-    expect(day.meta?.holidayName).toBeDefined();
+    expect(day.meta?.transferredTo).toBe('2024-04-30');
+    expect(day.meta?.holidayName).toBe('День труда');
   });
 
   it('возвращает shortened для предпраздничного рабочего дня', () => {
     const day = get2024CalendarDay('2024-02-22');
 
     expect(day.type).toBe('shortened');
-    expect(day.meta?.holidayName).toBeDefined();
+    expect(day.meta?.holidayName).toBe('День защитника отечества');
+  });
+});
+
+describe('buildCalendar', () => {
+  it('возвращает корректные данные', () => {
+    expect(buildCalendar('2024', transfers2024)).toEqual([
+      {
+        date: '2024-01-01',
+        type: 'dayOff',
+        meta: { holidayName: 'Новый год' },
+      },
+      {
+        date: '2024-01-02',
+        type: 'dayOff',
+        meta: { holidayName: 'Новогодние каникулы' },
+      },
+      {
+        date: '2024-01-03',
+        type: 'dayOff',
+        meta: { holidayName: 'Новогодние каникулы' },
+      },
+      {
+        date: '2024-01-04',
+        type: 'dayOff',
+        meta: { holidayName: 'Новогодние каникулы' },
+      },
+      {
+        date: '2024-01-05',
+        type: 'dayOff',
+        meta: { holidayName: 'Новогодние каникулы' },
+      },
+      {
+        date: '2024-01-06',
+        type: 'dayOff',
+        meta: {
+          transferredTo: '2024-05-10',
+          holidayName: 'Новогодние каникулы',
+        },
+      },
+      {
+        date: '2024-01-07',
+        type: 'dayOff',
+        meta: {
+          transferredTo: '2024-12-31',
+          holidayName: 'Рождество Христово',
+        },
+      },
+      {
+        date: '2024-01-08',
+        type: 'dayOff',
+        meta: { holidayName: 'Новогодние каникулы' },
+      },
+      { date: '2024-01-09', type: 'working' },
+      { date: '2024-01-10', type: 'working' },
+      { date: '2024-01-11', type: 'working' },
+      { date: '2024-01-12', type: 'working' },
+      { date: '2024-01-13', type: 'dayOff' },
+      { date: '2024-01-14', type: 'dayOff' },
+      { date: '2024-01-15', type: 'working' },
+      { date: '2024-01-16', type: 'working' },
+      { date: '2024-01-17', type: 'working' },
+      { date: '2024-01-18', type: 'working' },
+      { date: '2024-01-19', type: 'working' },
+      { date: '2024-01-20', type: 'dayOff' },
+      { date: '2024-01-21', type: 'dayOff' },
+      { date: '2024-01-22', type: 'working' },
+      { date: '2024-01-23', type: 'working' },
+      { date: '2024-01-24', type: 'working' },
+      { date: '2024-01-25', type: 'working' },
+      { date: '2024-01-26', type: 'working' },
+      { date: '2024-01-27', type: 'dayOff' },
+      { date: '2024-01-28', type: 'dayOff' },
+      { date: '2024-01-29', type: 'working' },
+      { date: '2024-01-30', type: 'working' },
+      { date: '2024-01-31', type: 'working' },
+      { date: '2024-02-01', type: 'working' },
+      { date: '2024-02-02', type: 'working' },
+      { date: '2024-02-03', type: 'dayOff' },
+      { date: '2024-02-04', type: 'dayOff' },
+      { date: '2024-02-05', type: 'working' },
+      { date: '2024-02-06', type: 'working' },
+      { date: '2024-02-07', type: 'working' },
+      { date: '2024-02-08', type: 'working' },
+      { date: '2024-02-09', type: 'working' },
+      { date: '2024-02-10', type: 'dayOff' },
+      { date: '2024-02-11', type: 'dayOff' },
+      { date: '2024-02-12', type: 'working' },
+      { date: '2024-02-13', type: 'working' },
+      { date: '2024-02-14', type: 'working' },
+      { date: '2024-02-15', type: 'working' },
+      { date: '2024-02-16', type: 'working' },
+      { date: '2024-02-17', type: 'dayOff' },
+      { date: '2024-02-18', type: 'dayOff' },
+      { date: '2024-02-19', type: 'working' },
+      { date: '2024-02-20', type: 'working' },
+      { date: '2024-02-21', type: 'working' },
+      {
+        date: '2024-02-22',
+        type: 'shortened',
+        meta: { holidayName: 'День защитника отечества' },
+      },
+      {
+        date: '2024-02-23',
+        type: 'dayOff',
+        meta: { holidayName: 'День защитника отечества' },
+      },
+      { date: '2024-02-24', type: 'dayOff' },
+      { date: '2024-02-25', type: 'dayOff' },
+      { date: '2024-02-26', type: 'working' },
+      { date: '2024-02-27', type: 'working' },
+      { date: '2024-02-28', type: 'working' },
+      { date: '2024-02-29', type: 'working' },
+      { date: '2024-03-01', type: 'working' },
+      { date: '2024-03-02', type: 'dayOff' },
+      { date: '2024-03-03', type: 'dayOff' },
+      { date: '2024-03-04', type: 'working' },
+      { date: '2024-03-05', type: 'working' },
+      { date: '2024-03-06', type: 'working' },
+      {
+        date: '2024-03-07',
+        type: 'shortened',
+        meta: { holidayName: 'Международный женский день' },
+      },
+      {
+        date: '2024-03-08',
+        type: 'dayOff',
+        meta: { holidayName: 'Международный женский день' },
+      },
+      { date: '2024-03-09', type: 'dayOff' },
+      { date: '2024-03-10', type: 'dayOff' },
+      { date: '2024-03-11', type: 'working' },
+      { date: '2024-03-12', type: 'working' },
+      { date: '2024-03-13', type: 'working' },
+      { date: '2024-03-14', type: 'working' },
+      { date: '2024-03-15', type: 'working' },
+      { date: '2024-03-16', type: 'dayOff' },
+      { date: '2024-03-17', type: 'dayOff' },
+      { date: '2024-03-18', type: 'working' },
+      { date: '2024-03-19', type: 'working' },
+      { date: '2024-03-20', type: 'working' },
+      { date: '2024-03-21', type: 'working' },
+      { date: '2024-03-22', type: 'working' },
+      { date: '2024-03-23', type: 'dayOff' },
+      { date: '2024-03-24', type: 'dayOff' },
+      { date: '2024-03-25', type: 'working' },
+      { date: '2024-03-26', type: 'working' },
+      { date: '2024-03-27', type: 'working' },
+      { date: '2024-03-28', type: 'working' },
+      { date: '2024-03-29', type: 'working' },
+      { date: '2024-03-30', type: 'dayOff' },
+      { date: '2024-03-31', type: 'dayOff' },
+      { date: '2024-04-01', type: 'working' },
+      { date: '2024-04-02', type: 'working' },
+      { date: '2024-04-03', type: 'working' },
+      { date: '2024-04-04', type: 'working' },
+      { date: '2024-04-05', type: 'working' },
+      { date: '2024-04-06', type: 'dayOff' },
+      { date: '2024-04-07', type: 'dayOff' },
+      { date: '2024-04-08', type: 'working' },
+      { date: '2024-04-09', type: 'working' },
+      { date: '2024-04-10', type: 'working' },
+      { date: '2024-04-11', type: 'working' },
+      { date: '2024-04-12', type: 'working' },
+      { date: '2024-04-13', type: 'dayOff' },
+      { date: '2024-04-14', type: 'dayOff' },
+      { date: '2024-04-15', type: 'working' },
+      { date: '2024-04-16', type: 'working' },
+      { date: '2024-04-17', type: 'working' },
+      { date: '2024-04-18', type: 'working' },
+      { date: '2024-04-19', type: 'working' },
+      { date: '2024-04-20', type: 'dayOff' },
+      { date: '2024-04-21', type: 'dayOff' },
+      { date: '2024-04-22', type: 'working' },
+      { date: '2024-04-23', type: 'working' },
+      { date: '2024-04-24', type: 'working' },
+      { date: '2024-04-25', type: 'working' },
+      { date: '2024-04-26', type: 'working' },
+      {
+        date: '2024-04-27',
+        type: 'working',
+        meta: { transferredTo: '2024-04-29' },
+      },
+      { date: '2024-04-28', type: 'dayOff' },
+      {
+        date: '2024-04-29',
+        type: 'dayOff',
+        meta: { transferredFrom: '2024-04-27' },
+      },
+      {
+        date: '2024-04-30',
+        type: 'dayOff',
+        meta: { transferredFrom: '2024-11-02' },
+      },
+      {
+        date: '2024-05-01',
+        type: 'dayOff',
+        meta: { holidayName: 'День труда' },
+      },
+      { date: '2024-05-02', type: 'working' },
+      { date: '2024-05-03', type: 'working' },
+      { date: '2024-05-04', type: 'dayOff' },
+      { date: '2024-05-05', type: 'dayOff' },
+      { date: '2024-05-06', type: 'working' },
+      { date: '2024-05-07', type: 'working' },
+      {
+        date: '2024-05-08',
+        type: 'shortened',
+        meta: { holidayName: 'День победы' },
+      },
+      {
+        date: '2024-05-09',
+        type: 'dayOff',
+        meta: { holidayName: 'День победы' },
+      },
+      {
+        date: '2024-05-10',
+        type: 'dayOff',
+        meta: {
+          transferredFrom: '2024-01-06',
+          holidayName: 'Новогодние каникулы',
+        },
+      },
+      { date: '2024-05-11', type: 'dayOff' },
+      { date: '2024-05-12', type: 'dayOff' },
+      { date: '2024-05-13', type: 'working' },
+      { date: '2024-05-14', type: 'working' },
+      { date: '2024-05-15', type: 'working' },
+      { date: '2024-05-16', type: 'working' },
+      { date: '2024-05-17', type: 'working' },
+      { date: '2024-05-18', type: 'dayOff' },
+      { date: '2024-05-19', type: 'dayOff' },
+      { date: '2024-05-20', type: 'working' },
+      { date: '2024-05-21', type: 'working' },
+      { date: '2024-05-22', type: 'working' },
+      { date: '2024-05-23', type: 'working' },
+      { date: '2024-05-24', type: 'working' },
+      { date: '2024-05-25', type: 'dayOff' },
+      { date: '2024-05-26', type: 'dayOff' },
+      { date: '2024-05-27', type: 'working' },
+      { date: '2024-05-28', type: 'working' },
+      { date: '2024-05-29', type: 'working' },
+      { date: '2024-05-30', type: 'working' },
+      { date: '2024-05-31', type: 'working' },
+      { date: '2024-06-01', type: 'dayOff' },
+      { date: '2024-06-02', type: 'dayOff' },
+      { date: '2024-06-03', type: 'working' },
+      { date: '2024-06-04', type: 'working' },
+      { date: '2024-06-05', type: 'working' },
+      { date: '2024-06-06', type: 'working' },
+      { date: '2024-06-07', type: 'working' },
+      { date: '2024-06-08', type: 'dayOff' },
+      { date: '2024-06-09', type: 'dayOff' },
+      { date: '2024-06-10', type: 'working' },
+      {
+        date: '2024-06-11',
+        type: 'shortened',
+        meta: { holidayName: 'День России' },
+      },
+      {
+        date: '2024-06-12',
+        type: 'dayOff',
+        meta: { holidayName: 'День России' },
+      },
+      { date: '2024-06-13', type: 'working' },
+      { date: '2024-06-14', type: 'working' },
+      { date: '2024-06-15', type: 'dayOff' },
+      { date: '2024-06-16', type: 'dayOff' },
+      { date: '2024-06-17', type: 'working' },
+      { date: '2024-06-18', type: 'working' },
+      { date: '2024-06-19', type: 'working' },
+      { date: '2024-06-20', type: 'working' },
+      { date: '2024-06-21', type: 'working' },
+      { date: '2024-06-22', type: 'dayOff' },
+      { date: '2024-06-23', type: 'dayOff' },
+      { date: '2024-06-24', type: 'working' },
+      { date: '2024-06-25', type: 'working' },
+      { date: '2024-06-26', type: 'working' },
+      { date: '2024-06-27', type: 'working' },
+      { date: '2024-06-28', type: 'working' },
+      { date: '2024-06-29', type: 'dayOff' },
+      { date: '2024-06-30', type: 'dayOff' },
+      { date: '2024-07-01', type: 'working' },
+      { date: '2024-07-02', type: 'working' },
+      { date: '2024-07-03', type: 'working' },
+      { date: '2024-07-04', type: 'working' },
+      { date: '2024-07-05', type: 'working' },
+      { date: '2024-07-06', type: 'dayOff' },
+      { date: '2024-07-07', type: 'dayOff' },
+      { date: '2024-07-08', type: 'working' },
+      { date: '2024-07-09', type: 'working' },
+      { date: '2024-07-10', type: 'working' },
+      { date: '2024-07-11', type: 'working' },
+      { date: '2024-07-12', type: 'working' },
+      { date: '2024-07-13', type: 'dayOff' },
+      { date: '2024-07-14', type: 'dayOff' },
+      { date: '2024-07-15', type: 'working' },
+      { date: '2024-07-16', type: 'working' },
+      { date: '2024-07-17', type: 'working' },
+      { date: '2024-07-18', type: 'working' },
+      { date: '2024-07-19', type: 'working' },
+      { date: '2024-07-20', type: 'dayOff' },
+      { date: '2024-07-21', type: 'dayOff' },
+      { date: '2024-07-22', type: 'working' },
+      { date: '2024-07-23', type: 'working' },
+      { date: '2024-07-24', type: 'working' },
+      { date: '2024-07-25', type: 'working' },
+      { date: '2024-07-26', type: 'working' },
+      { date: '2024-07-27', type: 'dayOff' },
+      { date: '2024-07-28', type: 'dayOff' },
+      { date: '2024-07-29', type: 'working' },
+      { date: '2024-07-30', type: 'working' },
+      { date: '2024-07-31', type: 'working' },
+      { date: '2024-08-01', type: 'working' },
+      { date: '2024-08-02', type: 'working' },
+      { date: '2024-08-03', type: 'dayOff' },
+      { date: '2024-08-04', type: 'dayOff' },
+      { date: '2024-08-05', type: 'working' },
+      { date: '2024-08-06', type: 'working' },
+      { date: '2024-08-07', type: 'working' },
+      { date: '2024-08-08', type: 'working' },
+      { date: '2024-08-09', type: 'working' },
+      { date: '2024-08-10', type: 'dayOff' },
+      { date: '2024-08-11', type: 'dayOff' },
+      { date: '2024-08-12', type: 'working' },
+      { date: '2024-08-13', type: 'working' },
+      { date: '2024-08-14', type: 'working' },
+      { date: '2024-08-15', type: 'working' },
+      { date: '2024-08-16', type: 'working' },
+      { date: '2024-08-17', type: 'dayOff' },
+      { date: '2024-08-18', type: 'dayOff' },
+      { date: '2024-08-19', type: 'working' },
+      { date: '2024-08-20', type: 'working' },
+      { date: '2024-08-21', type: 'working' },
+      { date: '2024-08-22', type: 'working' },
+      { date: '2024-08-23', type: 'working' },
+      { date: '2024-08-24', type: 'dayOff' },
+      { date: '2024-08-25', type: 'dayOff' },
+      { date: '2024-08-26', type: 'working' },
+      { date: '2024-08-27', type: 'working' },
+      { date: '2024-08-28', type: 'working' },
+      { date: '2024-08-29', type: 'working' },
+      { date: '2024-08-30', type: 'working' },
+      { date: '2024-08-31', type: 'dayOff' },
+      { date: '2024-09-01', type: 'dayOff' },
+      { date: '2024-09-02', type: 'working' },
+      { date: '2024-09-03', type: 'working' },
+      { date: '2024-09-04', type: 'working' },
+      { date: '2024-09-05', type: 'working' },
+      { date: '2024-09-06', type: 'working' },
+      { date: '2024-09-07', type: 'dayOff' },
+      { date: '2024-09-08', type: 'dayOff' },
+      { date: '2024-09-09', type: 'working' },
+      { date: '2024-09-10', type: 'working' },
+      { date: '2024-09-11', type: 'working' },
+      { date: '2024-09-12', type: 'working' },
+      { date: '2024-09-13', type: 'working' },
+      { date: '2024-09-14', type: 'dayOff' },
+      { date: '2024-09-15', type: 'dayOff' },
+      { date: '2024-09-16', type: 'working' },
+      { date: '2024-09-17', type: 'working' },
+      { date: '2024-09-18', type: 'working' },
+      { date: '2024-09-19', type: 'working' },
+      { date: '2024-09-20', type: 'working' },
+      { date: '2024-09-21', type: 'dayOff' },
+      { date: '2024-09-22', type: 'dayOff' },
+      { date: '2024-09-23', type: 'working' },
+      { date: '2024-09-24', type: 'working' },
+      { date: '2024-09-25', type: 'working' },
+      { date: '2024-09-26', type: 'working' },
+      { date: '2024-09-27', type: 'working' },
+      { date: '2024-09-28', type: 'dayOff' },
+      { date: '2024-09-29', type: 'dayOff' },
+      { date: '2024-09-30', type: 'working' },
+      { date: '2024-10-01', type: 'working' },
+      { date: '2024-10-02', type: 'working' },
+      { date: '2024-10-03', type: 'working' },
+      { date: '2024-10-04', type: 'working' },
+      { date: '2024-10-05', type: 'dayOff' },
+      { date: '2024-10-06', type: 'dayOff' },
+      { date: '2024-10-07', type: 'working' },
+      { date: '2024-10-08', type: 'working' },
+      { date: '2024-10-09', type: 'working' },
+      { date: '2024-10-10', type: 'working' },
+      { date: '2024-10-11', type: 'working' },
+      { date: '2024-10-12', type: 'dayOff' },
+      { date: '2024-10-13', type: 'dayOff' },
+      { date: '2024-10-14', type: 'working' },
+      { date: '2024-10-15', type: 'working' },
+      { date: '2024-10-16', type: 'working' },
+      { date: '2024-10-17', type: 'working' },
+      { date: '2024-10-18', type: 'working' },
+      { date: '2024-10-19', type: 'dayOff' },
+      { date: '2024-10-20', type: 'dayOff' },
+      { date: '2024-10-21', type: 'working' },
+      { date: '2024-10-22', type: 'working' },
+      { date: '2024-10-23', type: 'working' },
+      { date: '2024-10-24', type: 'working' },
+      { date: '2024-10-25', type: 'working' },
+      { date: '2024-10-26', type: 'dayOff' },
+      { date: '2024-10-27', type: 'dayOff' },
+      { date: '2024-10-28', type: 'working' },
+      { date: '2024-10-29', type: 'working' },
+      { date: '2024-10-30', type: 'working' },
+      { date: '2024-10-31', type: 'working' },
+      { date: '2024-11-01', type: 'working' },
+      {
+        date: '2024-11-02',
+        type: 'shortened',
+        meta: { transferredTo: '2024-04-30', holidayName: 'День труда' },
+      },
+      { date: '2024-11-03', type: 'dayOff' },
+      {
+        date: '2024-11-04',
+        type: 'dayOff',
+        meta: { holidayName: 'День народного единства' },
+      },
+      { date: '2024-11-05', type: 'working' },
+      { date: '2024-11-06', type: 'working' },
+      { date: '2024-11-07', type: 'working' },
+      { date: '2024-11-08', type: 'working' },
+      { date: '2024-11-09', type: 'dayOff' },
+      { date: '2024-11-10', type: 'dayOff' },
+      { date: '2024-11-11', type: 'working' },
+      { date: '2024-11-12', type: 'working' },
+      { date: '2024-11-13', type: 'working' },
+      { date: '2024-11-14', type: 'working' },
+      { date: '2024-11-15', type: 'working' },
+      { date: '2024-11-16', type: 'dayOff' },
+      { date: '2024-11-17', type: 'dayOff' },
+      { date: '2024-11-18', type: 'working' },
+      { date: '2024-11-19', type: 'working' },
+      { date: '2024-11-20', type: 'working' },
+      { date: '2024-11-21', type: 'working' },
+      { date: '2024-11-22', type: 'working' },
+      { date: '2024-11-23', type: 'dayOff' },
+      { date: '2024-11-24', type: 'dayOff' },
+      { date: '2024-11-25', type: 'working' },
+      { date: '2024-11-26', type: 'working' },
+      { date: '2024-11-27', type: 'working' },
+      { date: '2024-11-28', type: 'working' },
+      { date: '2024-11-29', type: 'working' },
+      { date: '2024-11-30', type: 'dayOff' },
+      { date: '2024-12-01', type: 'dayOff' },
+      { date: '2024-12-02', type: 'working' },
+      { date: '2024-12-03', type: 'working' },
+      { date: '2024-12-04', type: 'working' },
+      { date: '2024-12-05', type: 'working' },
+      { date: '2024-12-06', type: 'working' },
+      { date: '2024-12-07', type: 'dayOff' },
+      { date: '2024-12-08', type: 'dayOff' },
+      { date: '2024-12-09', type: 'working' },
+      { date: '2024-12-10', type: 'working' },
+      { date: '2024-12-11', type: 'working' },
+      { date: '2024-12-12', type: 'working' },
+      { date: '2024-12-13', type: 'working' },
+      { date: '2024-12-14', type: 'dayOff' },
+      { date: '2024-12-15', type: 'dayOff' },
+      { date: '2024-12-16', type: 'working' },
+      { date: '2024-12-17', type: 'working' },
+      { date: '2024-12-18', type: 'working' },
+      { date: '2024-12-19', type: 'working' },
+      { date: '2024-12-20', type: 'working' },
+      { date: '2024-12-21', type: 'dayOff' },
+      { date: '2024-12-22', type: 'dayOff' },
+      { date: '2024-12-23', type: 'working' },
+      { date: '2024-12-24', type: 'working' },
+      { date: '2024-12-25', type: 'working' },
+      { date: '2024-12-26', type: 'working' },
+      { date: '2024-12-27', type: 'working' },
+      {
+        date: '2024-12-28',
+        type: 'working',
+        meta: { transferredTo: '2024-12-30' },
+      },
+      { date: '2024-12-29', type: 'dayOff' },
+      {
+        date: '2024-12-30',
+        type: 'dayOff',
+        meta: { transferredFrom: '2024-12-28' },
+      },
+      {
+        date: '2024-12-31',
+        type: 'dayOff',
+        meta: {
+          transferredFrom: '2024-01-07',
+          holidayName: 'Рождество Христово',
+        },
+      },
+    ]);
   });
 });

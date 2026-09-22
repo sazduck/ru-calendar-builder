@@ -26,6 +26,7 @@ async function main() {
   console.log(transfers);
   const calendar = buildCalendar('2024', transfers.value);
   console.log(JSON.stringify(calendar));
+
 }
 
 if (import.meta.main) {

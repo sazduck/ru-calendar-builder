@@ -1,3 +1,4 @@
+import { nextDay } from 'date-fns/fp';
 import type { Day, Transfer } from './types';
 
 const HOLIDAYS: Record<string, string> = {
@@ -27,7 +28,7 @@ export const getCalendarDay = (date: Date, transfers: Transfer[]) => {
   };
   const isCurrentDayHoliday = mmdd in HOLIDAYS;
   const transferedTo = transfers.find(tr => tr.from === `${year}-${mmdd}`)?.to;
-  const trasnferdFrom = transfers.find((tr) => tr.to === `${year}-${mmdd}`)?.from;
+  const transferedFrom = transfers.find((tr) => tr.to === `${year}-${mmdd}`)?.from;
 
   const isCurrentDayWeekend = [6, 0].includes(date.getDay());
 
@@ -36,45 +37,59 @@ export const getCalendarDay = (date: Date, transfers: Transfer[]) => {
     currentDay.meta = {
       holidayName: HOLIDAYS[mmdd],
     };
-    if (isCurrentDayWeekend && transferedTo) {
-      currentDay.meta.transferedTo = {
-        date: transferedTo,
-      };
-    }
-  } else if (trasnferdFrom) {
-    currentDay.type = 'non_working';
+    return currentDay;
+  }
+
+  if (transferedFrom) {
     currentDay.meta = {
-      transferedFrom: {
-        date: trasnferdFrom,
-      },
+      transferedFrom: transferedFrom,
     };
-    if (trasnferdFrom.substring(5) in HOLIDAYS) {
-      currentDay.meta.holidayName = HOLIDAYS[trasnferdFrom.substring(5)]
+
+    const isTransferedDayHoliday = transferedFrom.substring(5) in HOLIDAYS
+    if (isTransferedDayHoliday) {
+      currentDay.type = 'non_working';
+      currentDay.meta!.holidayName = HOLIDAYS[transferedFrom!.substring(5)]
+      return currentDay;
     }
-  } else if (transferedTo) {
-    currentDay.type = 'working';
+
+    const isTransferedDayWeekend = [6, 0].includes(new Date(transferedFrom).getDay());
+    if (isTransferedDayWeekend) {
+      currentDay.type = 'non_working';
+      return currentDay
+    }
+  }
+
+
+  if (transferedTo) {
     currentDay.meta = {
-      transferedTo: {
-        date: transferedTo,
-      },
+      transferedTo: transferedTo,
     };
   } else if (isCurrentDayWeekend) {
     currentDay.type = 'non_working';
   }
 
-  const nextDay = new Date(
-    trasnferdFrom ? trasnferdFrom  : date,
-  );
-  nextDay.setDate(nextDay.getDate() + 1);
-  const tomorrowHoliday = HOLIDAYS[nextDay.toISOString().substring(5, 10)];
+  const getNextDayMmdd = (date: Date | string) => {
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay.toISOString().substring(5, 10);
+  }
 
-  if (currentDay.type === 'working' && tomorrowHoliday) {
+  const nextMmdd = getNextDayMmdd(date)
+
+  const tomorrowHoliday = HOLIDAYS[nextMmdd];
+
+  if (tomorrowHoliday ||
+    transferedFrom && getNextDayMmdd(transferedFrom) in HOLIDAYS ||
+    transferedTo && getNextDayMmdd(transferedTo) in HOLIDAYS
+
+  ) {
     currentDay.type = 'shortened';
     currentDay.meta = {
       ...currentDay.meta,
       holidayName: tomorrowHoliday,
     };
   }
+
   return currentDay;
 };
 

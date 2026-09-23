@@ -15,9 +15,11 @@ const MONTHS: Record<string, string> = {
   декабря: '12',
 } as const;
 
-export const parseTransfers = (
-  str: string,
-): Result<DayOffTransfer[], string> => {
+interface ParseResult {
+  year: number;
+  transfers: DayOffTransfer[];
+}
+export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const yearMatch = str.match(/\d{4}/);
   if (!yearMatch) {
     return {
@@ -31,7 +33,7 @@ export const parseTransfers = (
     /с\s+[а-я]+\s+(\d{1,2})\s+([а-я]+)\sна\s+[а-я]+\s+(\d{1,2})\s+([а-я]+)/gm,
   );
 
-  const res: DayOffTransfer[] = [];
+  const transfers: DayOffTransfer[] = [];
   for (let m of matches) {
     const dayFrom = m[1] ?? '';
     const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
@@ -62,13 +64,16 @@ export const parseTransfers = (
       };
     }
 
-    res.push({
+    transfers.push({
       originalDate: year + '-' + monthFrom + '-' + dayFrom.padStart(2, '0'),
       newDate: year + '-' + monthTo + '-' + dayTo.padStart(2, '0'),
     });
   }
-  if (res.length === 0) {
-    return { ok: false, error: 'не найдено совпадений переносов' };
-  }
-  return { ok: true, value: res };
+  return {
+    ok: true,
+    value: {
+      year: Number(year),
+      transfers,
+    },
+  };
 };

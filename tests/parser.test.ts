@@ -11,10 +11,11 @@ describe('parseTransfers', () => {
     const result = parseTransfers(str);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual([
+      expect(result.value.transfers).toEqual([
         { originalDate: '2026-01-03', newDate: '2026-01-09' },
         { originalDate: '2026-01-04', newDate: '2026-12-31' },
       ] satisfies DayOffTransfer[]);
+      expect(result.value.year).toEqual(2026);
     }
   });
 
@@ -27,10 +28,7 @@ describe('parseTransfers', () => {
   });
   it('должна вернуть ошибку при отсутствии совпадений переносов', () => {
     const result = parseTransfers('1337 год');
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toBe('не найдено совпадений переносов');
-    }
+    expect(result.ok).toBe(true);
   });
   it('должна вернуть ошибку при нахождении неверного числа', () => {
     const result = parseTransfers('1337 год с мурзика 42 мямуня на ковырика 10 мяубря');

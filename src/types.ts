@@ -1,16 +1,47 @@
 type DayType = 'working' | 'dayOff' | 'shortened';
 
-export interface DayMeta {
-  holidayName?: string | undefined;
-  transferredFrom?: string;
+type DayTypeReason = 'holiday' | 'transfer' | 'preholiday' ;
+
+export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+type Weekday = typeof WEEKDAYS[number];;
+
+interface HolydayMeta {
+  reason: Extract<DayTypeReason, 'holiday'>;
+  holidayName: string;
   transferredTo?: string;
+  weekday?: Weekday;
 }
 
-export interface Day {
-  date: string;
-  type: DayType;
-  meta?: DayMeta | undefined;
+interface PreholidayMeta {
+  reason: Extract<DayTypeReason, 'preholiday'>;
+  holidayName: string;
+  transferredTo?: string;
+  weekday?: Weekday;
 }
+
+type NonHolidayMeta = {
+  reason?: Extract<DayTypeReason, 'transfer'>;
+  holidayName?: string;
+  weekday?: Weekday;
+} & ({ transferredTo?: string } | { transferredFrom?: string });
+
+
+
+export type Day = { date: string } & (
+  | {
+      type: Extract<DayType, 'dayOff'>;
+      meta?: (NonHolidayMeta | HolydayMeta) | never;
+    }
+  | {
+      type: Extract<DayType, 'shortened'>;
+      meta?: PreholidayMeta | never;
+    }
+  | {
+      type: Extract<DayType, 'working'>;
+      meta?: NonHolidayMeta | never;
+    }
+);
 
 export interface DayOffTransfer {
   originalDate: string;

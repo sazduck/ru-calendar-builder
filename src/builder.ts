@@ -42,8 +42,6 @@ export const getCalendarDay = (date: Date, transfers: DayOffTransfer[]) => {
     if (toHolidayName) {
       curDay.meta.holidayName = toHolidayName;
     }
-  } else if (isCurDayWeekend) {
-    curDay.type = 'dayOff';
   }
 
   const transferredFrom = transfers.find((tr) => tr.newDate === isoDate)?.originalDate;
@@ -81,7 +79,9 @@ export const getCalendarDay = (date: Date, transfers: DayOffTransfer[]) => {
     holidayName = HOLIDAYS[getNextDayMmdd(transferredTo)];
   } else if (isCurDayWeekend) {
     curDay.type = 'dayOff';
-  } else if (holidayName) {
+    return curDay;
+  }
+  if (holidayName) {
     curDay.type = 'shortened';
     curDay.meta = {
       ...curDay.meta,

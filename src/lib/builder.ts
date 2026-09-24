@@ -1,5 +1,12 @@
-import { HOLIDAYS, WEEKDAYS } from "./constants";
-import type { Day, DayOffTransfer, TransferMeta } from "./types";
+import { HOLIDAYS, WEEKDAYS } from './constants';
+import type {
+  Day,
+  DayOffTransfer,
+  HolydayMeta,
+  PreholidayMeta,
+  PureWeekendMeta,
+  TransferMeta,
+} from './types';
 
 const getNextDayMmdd = (date: Date | string) => {
   const nextDay = new Date(date);
@@ -41,7 +48,7 @@ export const getCalendarDay = (
         holidayName,
         ...(transferredTo && { transferredTo }),
         ...(weekday && { weekday }),
-      },
+      } satisfies HolydayMeta,
     };
   }
 
@@ -60,7 +67,7 @@ export const getCalendarDay = (
         transferredFrom,
         holidayName: fromHolidayName,
         ...(weekday && { weekday }),
-      },
+      } satisfies TransferMeta,
     };
   }
 
@@ -78,7 +85,7 @@ export const getCalendarDay = (
         holidayName: tomorrowHolidayName,
         ...(transferredTo && { transferredTo }),
         ...(weekday && { weekday }),
-      },
+      } satisfies PreholidayMeta,
     };
   }
 
@@ -105,19 +112,19 @@ export const getCalendarDay = (
           reason: 'transfer',
           transferredTo,
           ...(weekday && { weekday }),
-        },
+        } satisfies TransferMeta,
       };
     }
-  }
 
-  if (weekday) {
-    return {
-      date: isoDate,
-      type: 'dayOff',
-      meta: {
-        weekday,
-      },
-    };
+    if (weekday) {
+      return {
+        date: isoDate,
+        type: 'dayOff',
+        meta: {
+          weekday,
+        } satisfies PureWeekendMeta,
+      };
+    }
   }
 
   return { date: isoDate, type: 'working' };

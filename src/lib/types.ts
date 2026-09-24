@@ -1,8 +1,4 @@
-import type { WEEKDAYS } from "./constants";
-
-type DayType = 'working' | 'dayOff' | 'shortened';
-
-type DayTypeReason = 'holiday' | 'transfer' | 'preholiday';
+import type { WEEKDAYS } from './constants';
 
 type Weekday = (typeof WEEKDAYS)[number];
 
@@ -12,29 +8,27 @@ export interface ParseResult {
 }
 
 export interface HolydayMeta {
-  reason: Extract<DayTypeReason, 'holiday'>;
+  reason: 'holiday';
   holidayName: string;
   transferredTo?: string;
   weekday?: Weekday;
 }
 
 export interface PreholidayMeta {
-  reason: Extract<DayTypeReason, 'preholiday'>;
+  reason: 'preholiday';
   holidayName: string;
   transferredTo?: string;
   weekday?: Weekday;
 }
 
 export type TransferMeta = {
-  reason: Extract<DayTypeReason, 'transfer'>;
+  reason: 'transfer';
   holidayName?: string;
   weekday?: Weekday;
 } & ({ transferredTo: string } | { transferredFrom: string });
 
 export interface PureWeekendMeta {
   weekday: Weekday;
-  reason?: never;
-  holidayName?: never;
 }
 
 export type Day = { date: string } & (

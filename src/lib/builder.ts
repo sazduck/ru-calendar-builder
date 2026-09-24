@@ -115,16 +115,15 @@ export const getCalendarDay = (
         } satisfies TransferMeta,
       };
     }
-
-    if (weekday) {
-      return {
-        date: isoDate,
-        type: 'dayOff',
-        meta: {
-          weekday,
-        } satisfies PureWeekendMeta,
-      };
-    }
+  }
+  if (weekday) {
+    return {
+      date: isoDate,
+      type: 'dayOff',
+      meta: {
+        weekday,
+      } satisfies PureWeekendMeta,
+    };
   }
 
   return { date: isoDate, type: 'working' };

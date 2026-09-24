@@ -1,21 +1,5 @@
-import { WEEKDAYS, type Day, type DayOffTransfer } from './types';
-
-const HOLIDAYS: Record<string, string> = {
-  '01-01': 'Новый год',
-  '01-02': 'Новогодние каникулы',
-  '01-03': 'Новогодние каникулы',
-  '01-04': 'Новогодние каникулы',
-  '01-05': 'Новогодние каникулы',
-  '01-06': 'Новогодние каникулы',
-  '01-07': 'Рождество Христово',
-  '01-08': 'Новогодние каникулы',
-  '02-23': 'День защитника отечества',
-  '03-08': 'Международный женский день',
-  '05-01': 'День труда',
-  '05-09': 'День победы',
-  '06-12': 'День России',
-  '11-04': 'День народного единства',
-} as const;
+import { HOLIDAYS, WEEKDAYS } from "./constants";
+import type { Day, DayOffTransfer, TransferMeta } from "./types";
 
 const getNextDayMmdd = (date: Date | string) => {
   const nextDay = new Date(date);
@@ -41,8 +25,7 @@ export const getCalendarDay = (
 ): Day => {
   const isoDate = date.toISOString().substring(0, 10);
   const mmdd = isoDate.substring(5);
-  const weekday =
-    (isWeekend(date) && WEEKDAYS[date.getDay()]) || undefined;
+  const weekday = (isWeekend(date) && WEEKDAYS[date.getDay()]) || undefined;
 
   const transferredTo = transfers.find(
     (tr) => tr.originalDate === isoDate,
@@ -66,7 +49,8 @@ export const getCalendarDay = (
     (tr) => tr.newDate === isoDate,
   )?.originalDate;
 
-  const fromHolidayName = transferredFrom && HOLIDAYS[transferredFrom.substring(5)];
+  const fromHolidayName =
+    transferredFrom && HOLIDAYS[transferredFrom.substring(5)];
   if (fromHolidayName) {
     return {
       date: isoDate,
@@ -107,7 +91,7 @@ export const getCalendarDay = (
         reason: 'transfer',
         transferredFrom,
         ...(weekday && { weekday }),
-      },
+      } satisfies TransferMeta,
     };
   }
 
@@ -126,15 +110,17 @@ export const getCalendarDay = (
     }
   }
 
-  return {
-    date: isoDate,
-    type: weekday ? 'dayOff' : 'working',
-    ...(weekday && {
+  if (weekday) {
+    return {
+      date: isoDate,
+      type: 'dayOff',
       meta: {
         weekday,
       },
-    }),
-  };
+    };
+  }
+
+  return { date: isoDate, type: 'working' };
 };
 
 export const buildCalendar = (

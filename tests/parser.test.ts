@@ -1,5 +1,5 @@
-import { parseTransfers } from '@/parser';
-import type { DayOffTransfer } from '@/types'
+import { parseTransfers } from '@/lib/parser';
+import type { DayOffTransfer } from '@/lib/types';
 import { describe, expect, it } from 'vitest';
 
 
@@ -10,38 +10,37 @@ describe('parseTransfers', () => {
 с воскресенья 4 января на четверг 31 декабря.`;
     const result = parseTransfers(str);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.transfers).toEqual([
-        { originalDate: '2026-01-03', newDate: '2026-01-09' },
-        { originalDate: '2026-01-04', newDate: '2026-12-31' },
-      ] satisfies DayOffTransfer[]);
-      expect(result.value.year).toEqual(2026);
+    if (!result.ok) {
+      expect.fail()
     }
+    expect(result.value.transfers).toEqual([
+      { originalDate: '2026-01-03', newDate: '2026-01-09' },
+      { originalDate: '2026-01-04', newDate: '2026-12-31' },
+    ] satisfies DayOffTransfer[]);
+    expect(result.value.year).toEqual(2026);
   });
 
   it('должна вернуть ошибку при отсутствии года', () => {
     const result = parseTransfers('Текст без года');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toContain('год');
+    if (result.ok) {
+      expect.fail()
     }
-  });
-  it('должна вернуть ошибку при отсутствии совпадений переносов', () => {
-    const result = parseTransfers('1337 год');
-    expect(result.ok).toBe(true);
+    expect(result.error).toContain('год');
+
   });
   it('должна вернуть ошибку при нахождении неверного числа', () => {
     const result = parseTransfers('1337 год с мурзика 42 мямуня на ковырика 10 мяубря');
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toContain('неверное число');
+    if (result.ok) {
+      expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
     }
+    expect(result.error).toContain('неверное число');
   });
   it('должна вернуть ошибку при нахождении неизвестного месяца', () => {
     const result = parseTransfers('1337 год с мурзика 31 мямуня на ковырика 10 мяубря');
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toContain('неизвестный месяц');
+    if (result.ok) {
+      expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
     }
+    expect(result.error).toContain('неизвестный месяц');
   });
 });

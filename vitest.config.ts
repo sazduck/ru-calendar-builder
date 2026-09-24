@@ -4,25 +4,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
+      '@lib': path.resolve(import.meta.dirname, 'src/lib'),
     },
   },
   test: {
     globals: true,
     environment: 'node',
-    tags: [
-      {
-        name: 'heavy',
-        description: 'Тяжелые тесты ',
-        timeout: 60_000,
-      },
-      {
-        name: 'calendar',
-        description: 'Тесты календаря ',
-      },
-      {
-        name: 'parser',
-        description: 'Тесты парсера ',
-      },
-    ],
   },
 });

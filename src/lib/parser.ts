@@ -1,4 +1,4 @@
-import type { Result, DayOffTransfer } from './types';
+import type { DayOffTransfer, ParseResult, Result } from "./types";
 
 const MONTHS: Record<string, string> = {
   января: '01',
@@ -15,10 +15,6 @@ const MONTHS: Record<string, string> = {
   декабря: '12',
 } as const;
 
-interface ParseResult {
-  year: number;
-  transfers: DayOffTransfer[];
-}
 export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const yearMatch = str.match(/\d{4}/);
   if (!yearMatch) {
@@ -30,7 +26,7 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const year = yearMatch[0];
 
   const matches = str.matchAll(
-    /с\s+[а-я]+\s+(\d{1,2})\s+([а-я]+)\sна\s+[а-я]+\s+(\d{1,2})\s+([а-я]+)/gm,
+    /с\s+[а-я]+\s+(\d{1,2})\s+([а-я]+).*?на\s+[а-я]+\s+(\d{1,2})\s+([а-я]+)/gm,
   );
 
   const transfers: DayOffTransfer[] = [];
@@ -44,7 +40,7 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
     const dayTo = m[3] ?? '';
     const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
     if (isDayToLegal) {
-      return { ok: false, error: `неверное число: ${m[1]}` };
+      return { ok: false, error: `неверное число: ${m[3]}` };
     }
     const rawMonthTo = m[4]?.toLowerCase();
 

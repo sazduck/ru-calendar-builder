@@ -2,13 +2,15 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@cli/*": ["./cli/*"]
+      "@lib/*": ["./src/lib/*"],
+      "@bin/*": ["./src/cli/*"],
     },
 
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "ESNext",
 
+    "noEmit": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
@@ -25,11 +27,8 @@
 
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
   },
-  "include": ["src/**/*"],
-  "exclude": [
-    "src/**/*.test.ts",
-    "node_modules"
-  ]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules"],
 }

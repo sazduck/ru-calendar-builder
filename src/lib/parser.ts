@@ -1,19 +1,5 @@
+import { MONTHS } from "./constants";
 import type { DayOffTransfer, ParseResult, Result } from "./types";
-
-const MONTHS: Record<string, string> = {
-  января: '01',
-  февраля: '02',
-  марта: '03',
-  апреля: '04',
-  мая: '05',
-  июня: '06',
-  июля: '07',
-  августа: '08',
-  сентября: '09',
-  октября: '10',
-  ноября: '11',
-  декабря: '12',
-} as const;
 
 export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const yearMatch = str.match(/\d{4}/);

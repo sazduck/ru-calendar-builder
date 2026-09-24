@@ -47,8 +47,8 @@ export type Day = { date: string } & (
 );
 
 export interface DayOffTransfer {
-  originalDate: string;
-  newDate: string;
+  from: string;
+  to: string;
 }
 
 export type Result<T, E = Error> =

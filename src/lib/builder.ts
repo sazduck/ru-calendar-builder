@@ -35,8 +35,8 @@ export const getCalendarDay = (
   const weekday = (isWeekend(date) && WEEKDAYS[date.getDay()]) || undefined;
 
   const transferredTo = transfers.find(
-    (tr) => tr.originalDate === isoDate,
-  )?.newDate;
+    (tr) => tr.from === isoDate,
+  )?.to;
 
   const holidayName = HOLIDAYS[mmdd];
   if (holidayName) {
@@ -53,8 +53,8 @@ export const getCalendarDay = (
   }
 
   const transferredFrom = transfers.find(
-    (tr) => tr.newDate === isoDate,
-  )?.originalDate;
+    (tr) => tr.to === isoDate,
+  )?.from;
 
   const fromHolidayName =
     transferredFrom && HOLIDAYS[transferredFrom.substring(5)];

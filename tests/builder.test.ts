@@ -4,11 +4,11 @@ import { buildCalendar, getCalendarDay } from '@lib/builder';
 import type { DayOffTransfer } from '@lib/types';
 
 const transfers2024: DayOffTransfer[] = [
-  { originalDate: '2024-01-06', newDate: '2024-05-10' },
-  { originalDate: '2024-01-07', newDate: '2024-12-31' },
-  { originalDate: '2024-04-27', newDate: '2024-04-29' },
-  { originalDate: '2024-11-02', newDate: '2024-04-30' },
-  { originalDate: '2024-12-28', newDate: '2024-12-30' },
+  { from: '2024-01-06', to: '2024-05-10' },
+  { from: '2024-01-07', to: '2024-12-31' },
+  { from: '2024-04-27', to: '2024-04-29' },
+  { from: '2024-11-02', to: '2024-04-30' },
+  { from: '2024-12-28', to: '2024-12-30' },
 ];
 
 describe('getCalendarDay', () => {
@@ -34,6 +34,9 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-01-01');
 
     expect(day.type).toBe('dayOff');
+    if (day.type !== 'dayOff') {
+      return
+    }
     expect(day.meta?.holidayName).toBe('Новый год');
   });
 

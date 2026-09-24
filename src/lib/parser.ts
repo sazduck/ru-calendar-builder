@@ -47,8 +47,8 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
     }
 
     transfers.push({
-      originalDate: year + '-' + monthFrom + '-' + dayFrom.padStart(2, '0'),
-      newDate: year + '-' + monthTo + '-' + dayTo.padStart(2, '0'),
+      from: year + '-' + monthFrom + '-' + dayFrom.padStart(2, '0'),
+      to: year + '-' + monthTo + '-' + dayTo.padStart(2, '0'),
     });
   }
   return {

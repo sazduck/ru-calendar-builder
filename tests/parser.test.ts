@@ -14,8 +14,8 @@ describe('parseTransfers', () => {
       expect.fail()
     }
     expect(result.value.transfers).toEqual([
-      { originalDate: '2026-01-03', newDate: '2026-01-09' },
-      { originalDate: '2026-01-04', newDate: '2026-12-31' },
+      { from: '2026-01-03', to: '2026-01-09' },
+      { from: '2026-01-04', to: '2026-12-31' },
     ] satisfies DayOffTransfer[]);
     expect(result.value.year).toEqual(2026);
   });

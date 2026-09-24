@@ -1,5 +1,5 @@
 {
-  "name": "ru-calendar-builder.js",
+  "name": "ru-calendar-builder",
   "devDependencies": {
     "@types/node": "^25.9.8",
     "esbuild": "^0.28.2",
@@ -20,10 +20,7 @@
     "typecheck": "tsc --noEmit",
     "prebuild": "pn test:run && pn typecheck",
     "build": "esbuild src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outfile=dist/cli.js",
-    "start": "node dist/index.js",
-    "dev": "tsx src/bin/index.ts"
-  },
-  "dependencies": {
-    "ru-calendar-builder.js": "link:"
+    "start": "node dist/cli.js",
+    "dev": "tsx src/bin/main.ts"
   }
 }

@@ -4,16 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  ru-calendar-builder.js: 'link:'
-
 importers:
 
   .:
-    dependencies:
-      ru-calendar-builder.js:
-        specifier: 'link:'
-        version: 'link:'
     devDependencies:
       '@types/node':
         specifier: ^25.9.8

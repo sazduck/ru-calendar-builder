@@ -1,7 +1,3 @@
-import type { WEEKDAYS } from './constants';
-
-type Weekday = (typeof WEEKDAYS)[number];
-
 export interface ParseResult {
   year: number;
   transfers: DayOffTransfer[];
@@ -11,30 +7,22 @@ export interface HolydayMeta {
   reason: 'holiday';
   holidayName: string;
   transferredTo?: string;
-  weekday?: Weekday;
 }
 
 export interface PreholidayMeta {
   reason: 'preholiday';
   holidayName: string;
   transferredTo?: string;
-  weekday?: Weekday;
 }
 
-export type TransferMeta = {
-  reason: 'transfer';
-  holidayName?: string;
-  weekday?: Weekday;
-} & ({ transferredTo: string } | { transferredFrom: string });
-
-export interface PureWeekendMeta {
-  weekday: Weekday;
-}
+export type TransferMeta =
+  | { reason: 'transfer'; transferredTo: string; holidayName?: string }
+  | { reason: 'transfer'; transferredFrom: string; holidayName?: string };
 
 export type Day = { date: string } & (
   | {
       type: 'dayOff';
-      meta: TransferMeta | HolydayMeta | PureWeekendMeta;
+      meta?: TransferMeta | HolydayMeta;
     }
   | {
       type: 'shortened';

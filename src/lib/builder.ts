@@ -1,10 +1,9 @@
-import { HOLIDAYS, WEEKDAYS } from './constants';
+import { HOLIDAYS } from './constants';
 import type {
   Day,
   DayOffTransfer,
   HolydayMeta,
   PreholidayMeta,
-  PureWeekendMeta,
   TransferMeta,
 } from './types';
 
@@ -17,13 +16,7 @@ const getNextDayMmdd = (date: Date | string) => {
 const isWeekend = (date: Date | string) => {
   const newDate = typeof date === 'string' ? new Date(date) : date;
   const weekday = newDate.getDay();
-  switch (weekday) {
-    case 0:
-    case 6:
-      return true;
-    default:
-      return false;
-  }
+  return weekday === 0 || weekday === 6;
 };
 
 export const getCalendarDay = (
@@ -32,11 +25,8 @@ export const getCalendarDay = (
 ): Day => {
   const isoDate = date.toISOString().substring(0, 10);
   const mmdd = isoDate.substring(5);
-  const weekday = (isWeekend(date) && WEEKDAYS[date.getDay()]) || undefined;
 
-  const transferredTo = transfers.find(
-    (tr) => tr.from === isoDate,
-  )?.to;
+  const transferredTo = transfers.find((tr) => tr.from === isoDate)?.to;
 
   const holidayName = HOLIDAYS[mmdd];
   if (holidayName) {
@@ -47,14 +37,11 @@ export const getCalendarDay = (
         reason: 'holiday',
         holidayName,
         ...(transferredTo && { transferredTo }),
-        ...(weekday && { weekday }),
       } satisfies HolydayMeta,
     };
   }
 
-  const transferredFrom = transfers.find(
-    (tr) => tr.to === isoDate,
-  )?.from;
+  const transferredFrom = transfers.find((tr) => tr.to === isoDate)?.from;
 
   const fromHolidayName =
     transferredFrom && HOLIDAYS[transferredFrom.substring(5)];
@@ -66,16 +53,12 @@ export const getCalendarDay = (
         reason: 'transfer',
         transferredFrom,
         holidayName: fromHolidayName,
-        ...(weekday && { weekday }),
       } satisfies TransferMeta,
     };
   }
 
-  const tomorrowHolidayName =
-    transferredTo ?
-      HOLIDAYS[getNextDayMmdd(transferredTo)]
-    : HOLIDAYS[getNextDayMmdd(date)];
-
+  // если перенесенный день предепрездник то тоже сегодня сокращенный
+  const tomorrowHolidayName = HOLIDAYS[getNextDayMmdd(transferredTo ?? date)]
   if (tomorrowHolidayName) {
     return {
       date: isoDate,
@@ -84,7 +67,6 @@ export const getCalendarDay = (
         reason: 'preholiday',
         holidayName: tomorrowHolidayName,
         ...(transferredTo && { transferredTo }),
-        ...(weekday && { weekday }),
       } satisfies PreholidayMeta,
     };
   }
@@ -97,36 +79,25 @@ export const getCalendarDay = (
       meta: {
         reason: 'transfer',
         transferredFrom,
-        ...(weekday && { weekday }),
       } satisfies TransferMeta,
     };
   }
 
   if (transferredTo) {
-    const isToWeekend = isWeekend(transferredTo);
-    if (!isToWeekend) {
-      return {
-        date: isoDate,
-        type: 'working',
-        meta: {
-          reason: 'transfer',
-          transferredTo,
-          ...(weekday && { weekday }),
-        } satisfies TransferMeta,
-      };
-    }
-  }
-  if (weekday) {
     return {
       date: isoDate,
-      type: 'dayOff',
+      type: 'working',
       meta: {
-        weekday,
-      } satisfies PureWeekendMeta,
+        reason: 'transfer',
+        transferredTo,
+      } satisfies TransferMeta,
     };
   }
 
-  return { date: isoDate, type: 'working' };
+  return {
+    date: isoDate,
+    type: isWeekend(date) ? 'dayOff' : 'working',
+  };
 };
 
 export const buildCalendar = (

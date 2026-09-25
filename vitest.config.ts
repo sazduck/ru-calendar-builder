@@ -5,6 +5,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
       '@lib': path.resolve(import.meta.dirname, 'src/lib'),
+      '@bin': path.resolve(import.meta.dirname, 'src/bin'),
     },
   },
   test: {

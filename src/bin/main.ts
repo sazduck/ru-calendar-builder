@@ -11,13 +11,15 @@ function printHelp(w: NodeJS.WritableStream) {
   cat data.txt | ru-cal [опции]
 
 Аргументы:
-  [путь_к_файлу]        Необязательный путь к текстовому файлу с переносами.
-                        Если не указан, данные читаются из стандартного ввода (stdin).
+  [путь_к_файлу]         Необязательный путь к текстовому файлу с переносами.
+                         Если не указан, данные читаются из стандартного ввода (stdin).
 
 Опции:
-  -p, --parser-only     Запустить только парсер (выведет сырую структуру переносов)
-  -f, --format          Форматировать вывод JSON (с отступами в 2 пробела)
-  -h, --help            Показать эту справку
+  -p, --parser-only      Запустить только парсер (выведет сырую структуру переносов)
+  -j, --json             Входные данные - JSON с transfers (вместо текстового формата)
+  -f, --format           Форматировать вывод JSON (с отступами в 2 пробела)
+  -r, --with-reason-only Выводить только нетепичные дни (праздники/переносы/сокращенные)
+  -h, --help             Показать эту справку
   `);
 }
 
@@ -26,6 +28,8 @@ async function main() {
     const { values, positionals } = parseArgs({
       options: {
         'parser-only': { type: 'boolean', short: 'p' },
+        'with-reason-only': { type: 'boolean', short: 'r' },
+        json: { type: 'boolean', short: 'j'},
         format: { type: 'boolean', short: 'f' },
         help: { type: 'boolean', short: 'h' },
       },
@@ -55,8 +59,10 @@ async function main() {
     }
 
     await run(inputStream, process.stdout, {
-      parserOnly: !!values['parser-only'],
-      format: !!values.format,
+      parserOnly: Boolean(values['parser-only']),
+      format: Boolean(values.format),
+      withReasonOnly: Boolean(values['with-reason-only']),
+      json: Boolean(values.json)
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -3,45 +3,29 @@ export interface ParseResult {
   transfers: DayOffTransfer[];
 }
 
-export interface HolydayMeta {
-  reason: 'holiday';
-  holidayName: string;
-  transferredTo?: string;
-}
+export type CalendarType = 'weekday' | 'weekend' | 'holiday' | 'preholiday' | 'transfer';
+export type WorkMode = 'working' | 'shortened' | 'dayOff';
 
-export interface PreholidayMeta {
-  reason: 'preholiday';
-  holidayName: string;
-  transferredTo?: string;
-}
-
-export type TransferMeta =
-  | { reason: 'transfer'; transferredTo: string; holidayName?: string }
-  | { reason: 'transfer'; transferredFrom: string; holidayName?: string };
-
-export type Day = { date: string } & (
-  | {
-      type: 'dayOff';
-      meta?: TransferMeta | HolydayMeta;
-    }
-  | {
-      type: 'shortened';
-      meta: PreholidayMeta | TransferMeta;
-    }
-  | {
-      type: 'working';
-      meta?: TransferMeta;
-    }
-);
 
 export type TransferDirection = 'from' | 'to';
-export type TrasnferType = 'holiday' | 'weekend' | 'preholiday' | 'working';
 export interface Transfer {
   date: string;
-  type: TrasnferType;
-  holidayName?: string | never;
+  calendarType: CalendarType;
+  workMode: WorkMode;
   direction: TransferDirection;
-};
+}
+
+export type DayInfo = {
+  date: Date;
+  workMode: WorkMode;
+  calendarType: Extract<CalendarType, 'transfer'>;
+  transferInfo: Transfer;
+}| {
+  date: Date;
+  workMode: WorkMode;
+  calendarType: Extract<CalendarType, 'holiday'>;
+
+}
 
 export interface DayOffTransfer {
   from: string;

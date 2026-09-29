@@ -7,7 +7,7 @@ const transfers2024: DayOffTransfer[] = [
   { from: '2024-01-06', to: '2024-05-10' }, // праздник             -> будний
   { from: '2024-01-07', to: '2024-12-31' }, // праздник + выходной  -> будний
   { from: '2024-04-27', to: '2024-04-29' }, // выходной             -> будний
-  { from: '2024-11-02', to: '2024-04-30' }, // предпаздник          -> будний
+  { from: '2024-11-02', to: '2024-04-30' }, // выходной             -> предпаздник
   { from: '2024-12-28', to: '2024-12-30' }, // выходной             -> будний
 ];
 
@@ -58,6 +58,24 @@ describe('getCalendarDay', () => {
     }
     expect(day.meta.transferredFrom).toBe('2024-04-27');
     expect(day.meta.holidayName).toBeUndefined();
+  });
+
+  it('возвращает dayOff с transferredFrom для перенесенного с предпраздника ', () => {
+    const day = get2024CalendarDay('2024-04-30');
+
+    expect(day.type).toBe('dayOff');
+    assert(day.meta, 'метаданные не опеределны');
+    if (!day.meta || !('transferredFrom' in day.meta)) {
+      expect.fail('day.meta does not contain transferredFrom');
+    }
+    expect(day.meta.transferredFrom).toBe('2024-11-02');
+    expect(day.meta.holidayName).toBeUndefined();
+  });
+
+  it('возвращает dayOff для предпраздника выпавшего на выходной', () => {
+    const day = get2024CalendarDay('2024-11-03');
+
+    expect(day.type).toBe('dayOff');
   });
 
   it('возвращает working с transferredTo для перенесенного выходного (был)', () => {

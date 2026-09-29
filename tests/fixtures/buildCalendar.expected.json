@@ -197,8 +197,8 @@
   },
   {
     "date": "2024-04-30",
-    "type": "shortened",
-    "meta": { "reason": "preholiday", "holidayName": "День труда" }
+    "type": "dayOff",
+    "meta": { "reason": "transfer", "transferredFrom": "2024-11-02" }
   },
   {
     "date": "2024-05-01",
@@ -417,18 +417,14 @@
     "date": "2024-11-02",
     "type": "shortened",
     "meta": {
-      "reason": "preholiday",
+      "reason": "transfer",
       "holidayName": "День труда",
       "transferredTo": "2024-04-30"
     }
   },
   {
     "date": "2024-11-03",
-    "type": "shortened",
-    "meta": {
-      "reason": "preholiday",
-      "holidayName": "День народного единства"
-    }
+    "type": "dayOff"
   },
   {
     "date": "2024-11-04",

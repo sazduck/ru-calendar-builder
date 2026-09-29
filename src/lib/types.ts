@@ -26,13 +26,22 @@ export type Day = { date: string } & (
     }
   | {
       type: 'shortened';
-      meta: PreholidayMeta;
+      meta: PreholidayMeta | TransferMeta;
     }
   | {
       type: 'working';
       meta?: TransferMeta;
     }
 );
+
+export type TransferDirection = 'from' | 'to';
+export type TrasnferType = 'holiday' | 'weekend' | 'preholiday' | 'working';
+export interface Transfer {
+  date: string;
+  type: TrasnferType;
+  holidayName?: string | never;
+  direction: TransferDirection;
+};
 
 export interface DayOffTransfer {
   from: string;

@@ -4,7 +4,10 @@ import type {
   DayOffTransfer,
   HolydayMeta,
   PreholidayMeta,
+  Transfer,
+  TransferDirection,
   TransferMeta,
+  TrasnferType,
 } from './types';
 
 const getNextDayMmdd = (date: Date | string) => {
@@ -23,10 +26,113 @@ export const getCalendarDay = (
   date: Date,
   transfers: DayOffTransfer[],
 ): Day => {
+
   const isoDate = date.toISOString().substring(0, 10);
   const mmdd = isoDate.substring(5);
 
   const transferredTo = transfers.find((tr) => tr.from === isoDate)?.to;
+  if (HOLIDAYS[mmdd]) {
+    return {
+      type: 'dayOff',
+      date: isoDate,
+      meta: {
+        reason: 'holiday',
+        holidayName: HOLIDAYS[mmdd],
+        ...(transferredTo && { transferredTo })
+      }
+    }
+  }
+  const transferredFrom = transfers.find((tr) => tr.to === isoDate)?.from;
+
+  let transfer: | undefined | Transfer = undefined;
+
+  const getTrasnferType = (transferDate: string): {
+    type: TrasnferType;
+    holidayName?: string | never;
+
+  } => {
+    let holidayName = HOLIDAYS[transferDate.substring(5)]
+    if (holidayName) return {
+      type: 'holiday',
+      holidayName,
+    };
+    if (isWeekend(transferDate)) return {
+      type: 'weekend'
+    };
+    holidayName = HOLIDAYS[getNextDayMmdd(transferDate)]
+    if (holidayName) return {
+      type: 'preholiday',
+      holidayName,
+    };
+    return {
+      type: 'working',
+    }
+  }
+
+  const getTransfer = (transferDate: string, direction: TransferDirection='from'): Transfer => {
+    const { type, holidayName } = getTrasnferType(transferDate);
+    let transfer: Transfer = {
+      date: transferDate,
+      type,
+      direction,
+    }
+    if (holidayName){
+      transfer.holidayName = holidayName
+    }
+    return transfer;
+  };
+
+  if (transferredFrom) {
+    transfer = getTransfer(transferredFrom)
+  } else if (transferredTo) {
+    transfer = getTransfer(transferredTo, 'to')
+  }
+
+  if (transfer) {
+
+    if (transfer.type === 'holiday' || transfer.type === 'weekend') {
+      return {
+        date: isoDate,
+        type: 'dayOff',
+        meta: {
+          reason: 'transfer',
+          ...(transfer.holidayName && {holidayName: transfer.holidayName}),
+          ...(
+            transfer.direction === 'from' && { transferredFrom: transfer.date } ||
+            {transferredTo: transfer.date}
+          )
+        }
+      }
+    }
+
+    if (transfer.type === 'preholiday') {
+      return {
+        date: isoDate,
+        type: 'shortened',
+        meta: {
+          reason: 'transfer',
+          ...(
+            transfer.direction === 'from' && { transferredFrom: transfer.date } ||
+            {transferredTo: transfer.date}
+          ),
+          ...(transfer.holidayName && {holidayName: transfer.holidayName})
+        }
+      }
+    }
+
+    return {
+      date: isoDate,
+      type: 'working',
+      meta: {
+        reason: 'transfer',
+        ...(
+          transfer.direction === 'from' && { transferredFrom: transfer.date } ||
+          {transferredTo: transfer.date}
+        ),
+      }
+    }
+  }
+
 
   const holidayName = HOLIDAYS[mmdd];
   if (holidayName) {
@@ -41,24 +147,14 @@ export const getCalendarDay = (
     };
   }
 
-  const transferredFrom = transfers.find((tr) => tr.to === isoDate)?.from;
-
-  const fromHolidayName =
-    transferredFrom && HOLIDAYS[transferredFrom.substring(5)];
-  if (fromHolidayName) {
+  if (isWeekend(date)) {
     return {
       date: isoDate,
       type: 'dayOff',
-      meta: {
-        reason: 'transfer',
-        transferredFrom,
-        holidayName: fromHolidayName,
-      } satisfies TransferMeta,
-    };
+    }
   }
 
-  // если перенесенный день предепрездник то тоже сегодня сокращенный
-  const tomorrowHolidayName = HOLIDAYS[getNextDayMmdd(transferredTo ?? date)]
+  const tomorrowHolidayName = HOLIDAYS[getNextDayMmdd(date)];
   if (tomorrowHolidayName) {
     return {
       date: isoDate,
@@ -66,38 +162,15 @@ export const getCalendarDay = (
       meta: {
         reason: 'preholiday',
         holidayName: tomorrowHolidayName,
-        ...(transferredTo && { transferredTo }),
       } satisfies PreholidayMeta,
-    };
-  }
-
-  if (transferredFrom) {
-    const isFromWeekend = isWeekend(transferredFrom);
-    return {
-      type: isFromWeekend ? 'dayOff' : 'working',
-      date: isoDate,
-      meta: {
-        reason: 'transfer',
-        transferredFrom,
-      } satisfies TransferMeta,
-    };
-  }
-
-  if (transferredTo) {
-    return {
-      date: isoDate,
-      type: 'working',
-      meta: {
-        reason: 'transfer',
-        transferredTo,
-      } satisfies TransferMeta,
     };
   }
 
   return {
     date: isoDate,
-    type: isWeekend(date) ? 'dayOff' : 'working',
-  };
+    type: 'working',
+  }
+
 };
 
 export const buildCalendar = (

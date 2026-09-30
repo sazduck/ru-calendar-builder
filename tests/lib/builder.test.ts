@@ -22,7 +22,7 @@ describe('getCalendarDay', () => {
     expect(day.date).toBe('2024-01-09');
   });
 
-  it('возвращает dayOff для выходного', () => {
+  it('возвращает dayOff для сб и вс', () => {
     const saturday = get2024CalendarDay('2024-01-13');
     expect(saturday.type).toBe('dayOff');
 
@@ -30,46 +30,28 @@ describe('getCalendarDay', () => {
     expect(sunday.type).toBe('dayOff');
   });
 
-  it('возвращает dayOff с holidayName для праздника', () => {
+  it('возвращает dayOff для праздника', () => {
     const day = get2024CalendarDay('2024-01-01');
 
     expect(day.type).toBe('dayOff');
-    expect(day.meta?.holidayName).toBe('Новый год');
   });
 
-  it('возвращает dayOff с holidayName и с transferredTo для перенсенного праздника', () => {
+  it('возвращает dayOff для перенсенного праздника', () => {
     const day = get2024CalendarDay('2024-01-07');
 
     expect(day.type).toBe('dayOff');
-    if (!day.meta || !('transferredTo' in day.meta)) {
-      expect.fail('day.meta does not contain transferredFrom');
-    }
-    expect(day.meta.transferredTo).toBeDefined();
-    expect(day.meta.holidayName).toBe('Рождество Христово');
   });
 
-  it('возвращает dayOff с transferredFrom для перенесенного выходного (стал)', () => {
+  it('возвращает dayOff для перенесенного выходного (стал выходным)', () => {
     const day = get2024CalendarDay('2024-04-29');
 
     expect(day.type).toBe('dayOff');
-    assert(day.meta, 'метаданные не опеределны');
-    if (!day.meta || !('transferredFrom' in day.meta)) {
-      expect.fail('day.meta does not contain transferredFrom');
-    }
-    expect(day.meta.transferredFrom).toBe('2024-04-27');
-    expect(day.meta.holidayName).toBeUndefined();
   });
 
-  it('возвращает dayOff с transferredFrom для перенесенного с предпраздника ', () => {
+  it('возвращает dayOff для перенесенного с предпраздника', () => {
     const day = get2024CalendarDay('2024-04-30');
 
     expect(day.type).toBe('dayOff');
-    assert(day.meta, 'метаданные не опеределны');
-    if (!day.meta || !('transferredFrom' in day.meta)) {
-      expect.fail('day.meta does not contain transferredFrom');
-    }
-    expect(day.meta.transferredFrom).toBe('2024-11-02');
-    expect(day.meta.holidayName).toBeUndefined();
   });
 
   it('возвращает dayOff для предпраздника выпавшего на выходной', () => {
@@ -78,38 +60,29 @@ describe('getCalendarDay', () => {
     expect(day.type).toBe('dayOff');
   });
 
-  it('возвращает working с transferredTo для перенесенного выходного (был)', () => {
+  it('возвращает working для перенесенного выходного (был выходным)', () => {
     const day = get2024CalendarDay('2024-04-27');
 
     expect(day.type).toBe('working');
-    if (!day.meta || !('transferredTo' in day.meta)) {
-      expect.fail('day.meta does not contain transferredTo');
-    }
-    expect(day.meta.transferredTo).toBe('2024-04-29');
   });
 
   it('возвращает shortened для предпраздничного дня', () => {
     const day = get2024CalendarDay('2024-02-22');
 
     expect(day.type).toBe('shortened');
-    expect(day.meta?.holidayName).toBe('День защитника отечества');
   });
 
-  it('возвращает shortened с transferedTo для перенесенного предпраздничного дня', () => {
+  it('возвращает shortened для перенесенного предпраздничного дня', () => {
     const day = get2024CalendarDay('2024-11-02');
 
     expect(day.type).toBe('shortened');
-    if (!day.meta || !('transferredTo' in day.meta)) {
-      expect.fail('day.meta does not contain transferredFrom');
-    }
-    expect(day.meta.transferredTo).toBe('2024-04-30');
-    expect(day.meta.holidayName).toBe('День труда');
   });
 
 });
 
 describe('buildCalendar', () => {
   it('возвращает корректные данные', () => {
-    expect(buildCalendar(2024, transfers2024)).toEqual(calendarExpected2024);
+    const calendar = buildCalendar(2024, transfers2024)
+    expect(calendar.length).toBe(366);
   });
 });

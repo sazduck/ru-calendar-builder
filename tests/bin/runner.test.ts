@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
 import { run } from '@bin/runner';
+import type { CalendarStatus, Day } from '@/lib/types';
 
 function createReader(input: string): Readable {
   return Readable.from([input]);
@@ -68,11 +69,14 @@ describe('run', () => {
     expect(output).toContainEqual({
       date: '2024-01-07',
       type: 'dayOff',
-      meta: {
-        reason: 'holiday',
+      reason: {
+        type: 'holiday',
         holidayName: 'Рождество Христово',
-        transferredTo: "2024-12-31",
       },
+
+    } satisfies Day)
+
+
     });
   });
 
@@ -94,6 +98,3 @@ describe('run', () => {
       output.every((day: { meta?: { reason?: string } }) => day.meta?.reason),
     ).toBe(true);
   });
-
-  it;
-});

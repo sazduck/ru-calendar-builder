@@ -3,6 +3,7 @@
 import { parseArgs } from 'node:util';
 import { run } from './runner';
 import { createReadStream } from 'node:fs';
+import type { Readable } from 'stream';
 
 function printHelp(w: NodeJS.WritableStream) {
   w.write(`
@@ -28,7 +29,7 @@ async function main() {
     const { values, positionals } = parseArgs({
       options: {
         'parser-only': { type: 'boolean', short: 'p' },
-        'with-reason-only': { type: 'boolean', short: 'r' },
+        'with-status-only': { type: 'boolean', short: 's' },
         json: { type: 'boolean', short: 'j'},
         format: { type: 'boolean', short: 'f' },
         help: { type: 'boolean', short: 'h' },
@@ -42,7 +43,7 @@ async function main() {
       process.exit(0);
     }
 
-    let inputStream: NodeJS.ReadableStream;
+    let inputStream: Readable;;
 
     if (positionals && positionals.length > 0) {
       const filePath = positionals[0];
@@ -61,7 +62,7 @@ async function main() {
     await run(inputStream, process.stdout, {
       parserOnly: Boolean(values['parser-only']),
       format: Boolean(values.format),
-      withReasonOnly: Boolean(values['with-reason-only']),
+      withStatusOnly: Boolean(values['with-status-only']),
       json: Boolean(values.json)
     });
   } catch (error) {

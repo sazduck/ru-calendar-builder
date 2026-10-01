@@ -5,7 +5,7 @@ import { parseTransfers } from '@lib/parser';
 export interface RunOptions {
   parserOnly?: boolean;
   format?: boolean;
-  withReasonOnly?: boolean;
+  withStatusOnly?: boolean;
   json?: boolean;
 }
 
@@ -51,13 +51,13 @@ export async function run(
   options: RunOptions = {
     parserOnly: false,
     format: false,
-    withReasonOnly: false,
+    withStatusOnly: false,
     json: false,
   },
 ): Promise<void> {
   if (
     options.parserOnly &&
-    (options.withReasonOnly || options.json)
+    (options.withStatusOnly || options.json)
   ) {
     throw Error(
       '--parser-only cannot be used with --with-reason-only or --transfers',
@@ -87,8 +87,8 @@ export async function run(
   }
 
 
-  if (Array.isArray(outputData) && options.withReasonOnly) {
-    outputData = outputData.filter((day) => day.meta?.reason);
+  if (Array.isArray(outputData) && options.withStatusOnly) {
+    outputData = outputData.filter((day) => day.status);
   }
 
   const space = options.format ? 2 : undefined;

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
 import { run } from '@bin/runner';
-import type { CalendarStatus, Day } from '@/lib/types';
+import type { Day } from '@lib/types';
 
 function createReader(input: string): Readable {
   return Readable.from([input]);
@@ -69,32 +69,27 @@ describe('run', () => {
     expect(output).toContainEqual({
       date: '2024-01-07',
       type: 'dayOff',
-      reason: {
+      status: {
         type: 'holiday',
         holidayName: 'Рождество Христово',
       },
+    } satisfies Day);
+  });
+});
 
-    } satisfies Day)
+it('выводит только дни со status при withStatusOnly', async () => {
+  const input = '2024';
 
+  const { writer, getOutput } = createWriter();
 
-    });
+  await run(createReader(input), writer, {
+    withStatusOnly: true,
   });
 
-  it('выводит только дни с meta.reason при withReasonOnly', async () => {
-    const input = '2024';
+  const output = JSON.parse(getOutput());
 
-    const { writer, getOutput } = createWriter();
+  expect(output).toBeInstanceOf(Array);
+  expect(output.length).toBeGreaterThan(0);
 
-    await run(createReader(input), writer, {
-      withReasonOnly: true,
-    });
-
-    const output = JSON.parse(getOutput());
-
-    expect(output).toBeInstanceOf(Array);
-    expect(output.length).toBeGreaterThan(0);
-
-    expect(
-      output.every((day: { meta?: { reason?: string } }) => day.meta?.reason),
-    ).toBe(true);
-  });
+  expect(output.every((day: { status?: string }) => day.status)).toBe(true);
+});

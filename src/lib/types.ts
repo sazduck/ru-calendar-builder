@@ -17,7 +17,7 @@ export type Transfer =
 export type HolidayStatus = { type: 'holiday'; holidayName: string };
 export type PreholidayStatus = { type: 'preholiday'; holidayName: string };
 export type WeekendStatus = { type: 'weekend' };
-export type TransferStatus = { type: 'transfer', detail: Transfer }
+export type TransferStatus = { type: 'transfer', detail: Transfer}
 
 export type CalendarStatus = WeekendStatus | HolidayStatus | PreholidayStatus | TransferStatus;
 

@@ -69,7 +69,7 @@ describe('run', () => {
     expect(output).toContainEqual({
       date: '2024-01-07',
       type: 'dayOff',
-      status: {
+      reason: {
         type: 'holiday',
         holidayName: 'Рождество Христово',
       },
@@ -77,7 +77,7 @@ describe('run', () => {
   });
 });
 
-it('выводит только дни со status при withStatusOnly', async () => {
+it('выводит только дни со reason при withReasonOnly', async () => {
   const input = '2024';
 
   const { writer, getOutput } = createWriter();
@@ -91,5 +91,5 @@ it('выводит только дни со status при withStatusOnly', async
   expect(output).toBeInstanceOf(Array);
   expect(output.length).toBeGreaterThan(0);
 
-  expect(output.every((day: { status?: string }) => day.status)).toBe(true);
+  expect(output.every((day: Day) => day.reason)).toBe(true);
 });

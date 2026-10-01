@@ -5,39 +5,51 @@ export interface ParseResult {
 
 export type DayType = 'working' | 'shortened' | 'dayOff';
 
-export type Transfer =
-  | {
-      origin: 'received';
-      from: string;
-    }
-  | {
-      origin: 'sent';
-      to: string;
-    };
-export type HolidayStatus = { type: 'holiday'; holidayName: string };
-export type PreholidayStatus = { type: 'preholiday'; holidayName: string };
-export type WeekendStatus = { type: 'weekend' };
-export type TransferStatus = { type: 'transfer', detail: Transfer}
+export interface HolidayReason {
+  type: 'holiday';
+  holidayName: string;
+}
+export interface PreholidayReason {
+  type: 'preholiday';
+  holidayName: string;
+}
+export interface WeekendReason {
+  type: 'weekend';
+}
+export interface TransferReason {
+  type: 'transfer';
+  dir: 'to' | 'from';
+  /** @format date */
+  src: string;
+}
 
-export type CalendarStatus = WeekendStatus | HolidayStatus | PreholidayStatus | TransferStatus;
+export type CalendarStatus =
+  WeekendReason | HolidayReason | PreholidayReason | TransferReason;
 
 export type Day =
   | {
-    date: string;
-    type: 'working';
-    status?: TransferStatus;
-  } | {
-    date: string;
-    type: 'shortened';
-    status: PreholidayStatus | TransferStatus
-  } | {
-    date: string;
-    type: 'dayOff';
-    status: HolidayStatus | WeekendStatus | TransferStatus
-  }
+      /** @format date */
+      date: string;
+      type: 'working';
+      reason?: TransferReason;
+    }
+  | {
+      /** @format date */
+      date: string;
+      type: 'shortened';
+      reason: PreholidayReason | TransferReason;
+    }
+  | {
+      /** @format date */
+      date: string;
+      type: 'dayOff';
+      reason: HolidayReason | WeekendReason | TransferReason;
+    };
 
 export interface DayOffTransfer {
+  /** @format date */
   from: string;
+  /** @format date */
   to: string;
 }
 

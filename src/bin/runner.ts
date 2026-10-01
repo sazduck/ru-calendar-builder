@@ -88,7 +88,7 @@ export async function run(
 
 
   if (Array.isArray(outputData) && options.withStatusOnly) {
-    outputData = outputData.filter((day) => day.status);
+    outputData = outputData.filter((day) => day.reason);
   }
 
   const space = options.format ? 2 : undefined;

@@ -4,15 +4,14 @@ import {
   type Day,
   type DayOffTransfer,
   type DayType,
-  type Transfer,
-  type TransferStatus,
+  type TransferReason,
 } from './types';
 
 export function isWeekend(date: Date): boolean {
   return date.getUTCDay() === 0 || date.getUTCDay() === 6;
 }
 export function getDayType(
-  reason?: Exclude<CalendarStatus, TransferStatus>,
+  reason?: Exclude<CalendarStatus, TransferReason>,
 ): DayType {
   switch (reason?.type) {
     case 'holiday':
@@ -27,7 +26,7 @@ export function getDayType(
 
 export function getStatus(
   dateSrc: Date,
-): Exclude<CalendarStatus, TransferStatus> | undefined {
+): Exclude<CalendarStatus, TransferReason> | undefined {
   const date = new Date(dateSrc);
   const mmdd = date.toISOString().substring(5, 10);
   if (HOLIDAYS[mmdd]) {
@@ -48,45 +47,46 @@ export function getStatus(
 export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
   const isoDate = date.toISOString().substring(0, 10);
 
-  const transfferedTo = transfers.find((t) => t.from == isoDate)?.to;
-  const transfferedFrom = transfers.find((t) => t.to == isoDate)?.from;
+  const transferredTo = transfers.find((t) => t.from == isoDate)?.to;
+  const transferredFrom = transfers.find((t) => t.to == isoDate)?.from;
 
-  let transfer: Transfer | undefined;
-  if (transfferedTo) {
-    transfer = { origin: 'sent', to: transfferedTo };
-  } else if (transfferedFrom) {
-    transfer = { origin: 'received', from: transfferedFrom };
-  }
-
-  if (transfer?.origin === 'received') {
+  if (transferredFrom) {
     return {
       date: isoDate,
       type: 'dayOff',
-      status: { type: 'transfer', detail: transfer },
+      reason: {
+        type: 'transfer',
+        dir: 'from',
+        src: transferredFrom,
+      },
     };
   }
 
   const status = getStatus(date);
   if (status?.type === 'holiday') {
-    return { date: isoDate, type: 'dayOff', status };
+    return { date: isoDate, type: 'dayOff', reason: status };
   }
 
-  if (transfer?.origin === 'sent') {
-    const transferDate = new Date(transfer.to);
+  if (transferredTo) {
+    const transferDate = new Date(transferredTo);
     const transferStatus = getStatus(transferDate);
     const transferType = getDayType(transferStatus);
     return {
       date: isoDate,
       type: transferType,
-      status: { type: 'transfer', detail: transfer },
+      reason: {
+        type: 'transfer',
+        dir: 'from',
+        src: transferredTo,
+      },
     };
   }
 
   if (status?.type == 'preholiday') {
-    return { date: isoDate, type: 'shortened', status };
+    return { date: isoDate, type: 'shortened', reason: status };
   }
   if (status?.type == 'weekend') {
-    return { date: isoDate, type: 'dayOff', status };
+    return { date: isoDate, type: 'dayOff', reason: status };
   }
   return { date: isoDate, type: 'working' };
 }

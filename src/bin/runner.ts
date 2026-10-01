@@ -1,12 +1,14 @@
 import type { Day, DayOffTransfer, ParseResult, Result } from '@lib/types';
 import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
+import { getEoNumber } from '@lib/document-finder';
 
 export interface RunOptions {
   parserOnly?: boolean;
   format?: boolean;
-  withStatusOnly?: boolean;
+  withReasonOnly?: boolean;
   json?: boolean;
+  getLink?: number;
 }
 
 function isDayOffTransfer(value: unknown): value is DayOffTransfer {
@@ -39,7 +41,10 @@ function parseTransfersJson(raw: string): Result<ParseResult, string> {
   }
 
   if (!Array.isArray(transfers) || !transfers.every(isDayOffTransfer)) {
-    return { ok: false, error: 'transfers должен быть массивом DayOffTransfer' };
+    return {
+      ok: false,
+      error: 'transfers должен быть массивом DayOffTransfer',
+    };
   }
 
   return { ok: true, value: { year, transfers } };
@@ -48,17 +53,32 @@ function parseTransfersJson(raw: string): Result<ParseResult, string> {
 export async function run(
   reader: NodeJS.ReadableStream,
   writer: NodeJS.WritableStream,
-  options: RunOptions = {
-    parserOnly: false,
-    format: false,
-    withStatusOnly: false,
-    json: false,
-  },
+  options: RunOptions,
 ): Promise<void> {
   if (
-    options.parserOnly &&
-    (options.withStatusOnly || options.json)
+    options.getLink &&
+    (options.format || options.withReasonOnly || options.json)
   ) {
+    throw Error('--get-link cannot be used with any other flag');
+  }
+
+  if (options.getLink) {
+    if (Number.isNaN(options.getLink)) {
+      throw Error('year in --get-link should be a number')
+    }
+    if (options.getLink < 2014) {
+      throw Error('minimal year is 2014')
+    }
+    const actualPravoGovURL =
+      'http://actual.pravo.gov.ru/content/content.html#pnum=';
+    const eoNumber = await getEoNumber(options.getLink);
+
+    writer.write(actualPravoGovURL + eoNumber);
+    writer.end('\n');
+    return;
+  }
+
+  if (options.parserOnly && (options.withReasonOnly || options.json)) {
     throw Error(
       '--parser-only cannot be used with --with-reason-only or --transfers',
     );
@@ -72,9 +92,7 @@ export async function run(
   }
   const inputText = Buffer.concat(chunks).toString('utf8');
   const result =
-    options.json ?
-      parseTransfersJson(inputText)
-    : parseTransfers(inputText);
+    options.json ? parseTransfersJson(inputText) : parseTransfers(inputText);
 
   if (!result.ok) {
     throw Error(result.error);
@@ -86,8 +104,7 @@ export async function run(
     outputData = buildCalendar(year, transfers);
   }
 
-
-  if (Array.isArray(outputData) && options.withStatusOnly) {
+  if (Array.isArray(outputData) && options.withReasonOnly) {
     outputData = outputData.filter((day) => day.reason);
   }
 
@@ -95,5 +112,5 @@ export async function run(
   const jsonString = JSON.stringify(outputData, null, space);
 
   writer.write(jsonString);
-  writer.write('\n');
+  writer.end('\n');
 }

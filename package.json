@@ -22,5 +22,8 @@
     "build": "esbuild src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outfile=dist/cli.js",
     "start": "node dist/cli.js",
     "dev": "tsx src/bin/main.ts"
+  },
+  "dependencies": {
+    "valibot": "^1.5.0"
   }
 }

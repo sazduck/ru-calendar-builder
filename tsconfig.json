@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"],
       "@lib/*": ["./src/lib/*"],
       "@bin/*": ["./src/bin/*"],
+      "@/*": ["./src/*"],
     },
 
     "moduleResolution": "bundler",

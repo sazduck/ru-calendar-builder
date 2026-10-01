@@ -29,7 +29,8 @@ describe('run', () => {
 
     const { writer, getOutput } = createWriter();
 
-    await run(createReader(input), writer, { parserOnly: true });
+    const reader = createReader(input);
+    await run(reader, writer, { parserOnly: true });
 
     expect(JSON.parse(getOutput())).toEqual({
       year: 2024,
@@ -82,8 +83,9 @@ it('выводит только дни со reason при withReasonOnly', async
 
   const { writer, getOutput } = createWriter();
 
-  await run(createReader(input), writer, {
-    withStatusOnly: true,
+  const reader = createReader(input);
+  await run(reader, writer, {
+    withReasonOnly: true,
   });
 
   const output = JSON.parse(getOutput());

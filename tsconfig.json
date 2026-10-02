@@ -10,7 +10,7 @@
     "module": "esnext",
     "target": "ESNext",
 
-    "noEmit": true,
+    "noEmit": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,

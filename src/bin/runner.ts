@@ -1,14 +1,14 @@
 import type { Day, DayOffTransfer, ParseResult, Result } from '@lib/types';
 import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
-import { getEoNumber } from '@lib/document-finder';
+import { fetchEoNumber } from '@lib/document-finder';
 
 export interface RunOptions {
-  parserOnly?: boolean;
-  format?: boolean;
-  withReasonOnly?: boolean;
-  json?: boolean;
-  getLink?: number;
+  parserOnly?: boolean | undefined;
+  format?: boolean | undefined;
+  withReasonOnly?: boolean | undefined;
+  json?: boolean | undefined;
+  getLink?: number | undefined;
 }
 
 function isDayOffTransfer(value: unknown): value is DayOffTransfer {
@@ -55,23 +55,22 @@ export async function run(
   writer: NodeJS.WritableStream,
   options: RunOptions,
 ): Promise<void> {
-  if (
-    options.getLink &&
-    (options.format || options.withReasonOnly || options.json)
-  ) {
-    throw Error('--get-link cannot be used with any other flag');
+  if (Number.isNaN(options.getLink)) {
+    throw Error('year should be a number');
   }
 
   if (options.getLink) {
-    if (Number.isNaN(options.getLink)) {
-      throw Error('year in --get-link should be a number')
+    if (options.format || options.withReasonOnly || options.json) {
+      throw Error('--get-link cannot be used with any other flag');
     }
+
     if (options.getLink < 2014) {
-      throw Error('minimal year is 2014')
+      throw Error('minimal year is 2014');
     }
+
     const actualPravoGovURL =
       'http://actual.pravo.gov.ru/content/content.html#pnum=';
-    const eoNumber = await getEoNumber(options.getLink);
+    const eoNumber = await fetchEoNumber(options.getLink);
 
     writer.write(actualPravoGovURL + eoNumber);
     writer.end('\n');

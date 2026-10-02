@@ -1,4 +1,4 @@
-import { getEoNumber } from '@lib/document-finder';
+import { fetchEoNumber } from '@lib/document-finder';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('getEoNumber', () => {
@@ -33,14 +33,14 @@ describe('getEoNumber', () => {
             id: '4784dfe1-fd3b-4ebf-9873-748f3536185b',
           },
         ],
-        itemsTotalCount: 14,
-        itemsPerPage: 30,
+        itemsTotalCount: 1,
+        itemsPerPage: 1,
         currentPage: 1,
         pagesTotalCount: 1,
       }),
     } as Response);
 
-    const eoNumber = await getEoNumber(2027);
+    const eoNumber = await fetchEoNumber(2027);
     expect(eoNumber).toBe('0001202609180037');
   });
 });

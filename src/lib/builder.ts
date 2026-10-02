@@ -24,7 +24,7 @@ export function getDayType(
   }
 }
 
-export function getStatus(
+export function getReason(
   dateSrc: Date,
 ): Exclude<CalendarStatus, TransferReason> | undefined {
   const date = new Date(dateSrc);
@@ -62,14 +62,14 @@ export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
     };
   }
 
-  const status = getStatus(date);
-  if (status?.type === 'holiday') {
-    return { date: isoDate, type: 'dayOff', reason: status };
+  const reason = getReason(date);
+  if (reason?.type === 'holiday') {
+    return { date: isoDate, type: 'dayOff', reason: reason };
   }
 
   if (transferredTo) {
     const transferDate = new Date(transferredTo);
-    const transferStatus = getStatus(transferDate);
+    const transferStatus = getReason(transferDate);
     const transferType = getDayType(transferStatus);
     return {
       date: isoDate,
@@ -82,11 +82,11 @@ export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
     };
   }
 
-  if (status?.type == 'preholiday') {
-    return { date: isoDate, type: 'shortened', reason: status };
+  if (reason?.type == 'preholiday') {
+    return { date: isoDate, type: 'shortened', reason: reason };
   }
-  if (status?.type == 'weekend') {
-    return { date: isoDate, type: 'dayOff', reason: status };
+  if (reason?.type == 'weekend') {
+    return { date: isoDate, type: 'dayOff', reason: reason };
   }
   return { date: isoDate, type: 'working' };
 }

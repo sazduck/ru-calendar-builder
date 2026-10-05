@@ -1,190 +1,108 @@
 import { HOLIDAYS } from './constants';
-import type {
-  Day,
-  DayOffTransfer,
-  HolydayMeta,
-  PreholidayMeta,
-  Transfer,
-  TransferDirection,
-  TransferMeta,
-  TrasnferType,
+import {
+  type CalendarStatus,
+  type Day,
+  type DayOffTransfer,
+  type DayType,
+  type TransferReason,
 } from './types';
 
-const getNextDayMmdd = (date: Date | string) => {
-  const nextDay = new Date(date);
-  nextDay.setDate(nextDay.getDate() + 1);
-  return nextDay.toISOString().substring(5, 10);
-};
+export function isWeekend(date: Date): boolean {
+  return date.getUTCDay() === 0 || date.getUTCDay() === 6;
+}
+export function getDayType(
+  reason?: Exclude<CalendarStatus, TransferReason>,
+): DayType {
+  switch (reason?.type) {
+    case 'holiday':
+    case 'weekend':
+      return 'dayOff';
+    case 'preholiday':
+      return 'shortened';
+    default:
+      return 'working';
+  }
+}
 
-const isWeekend = (date: Date | string) => {
-  const newDate = typeof date === 'string' ? new Date(date) : date;
-  const weekday = newDate.getDay();
-  return weekday === 0 || weekday === 6;
-};
-
-export const getCalendarDay = (
-  date: Date,
-  transfers: DayOffTransfer[],
-): Day => {
-
-  const isoDate = date.toISOString().substring(0, 10);
-  const mmdd = isoDate.substring(5);
-
-  const transferredTo = transfers.find((tr) => tr.from === isoDate)?.to;
+export function getReason(
+  dateSrc: Date,
+): Exclude<CalendarStatus, TransferReason> | undefined {
+  const date = new Date(dateSrc);
+  const mmdd = date.toISOString().substring(5, 10);
   if (HOLIDAYS[mmdd]) {
-    return {
-      type: 'dayOff',
-      date: isoDate,
-      meta: {
-        reason: 'holiday',
-        holidayName: HOLIDAYS[mmdd],
-        ...(transferredTo && { transferredTo })
-      }
-    }
-  }
-  const transferredFrom = transfers.find((tr) => tr.to === isoDate)?.from;
-
-  let transfer: | undefined | Transfer = undefined;
-
-  const getTrasnferType = (transferDate: string): {
-    type: TrasnferType;
-    holidayName?: string | never;
-
-  } => {
-    let holidayName = HOLIDAYS[transferDate.substring(5)]
-    if (holidayName) return {
-      type: 'holiday',
-      holidayName,
-    };
-    if (isWeekend(transferDate)) return {
-      type: 'weekend'
-    };
-    holidayName = HOLIDAYS[getNextDayMmdd(transferDate)]
-    if (holidayName) return {
-      type: 'preholiday',
-      holidayName,
-    };
-    return {
-      type: 'working',
-    }
-  }
-
-  const getTransfer = (transferDate: string, direction: TransferDirection='from'): Transfer => {
-    const { type, holidayName } = getTrasnferType(transferDate);
-    let transfer: Transfer = {
-      date: transferDate,
-      type,
-      direction,
-    }
-    if (holidayName){
-      transfer.holidayName = holidayName
-    }
-    return transfer;
-  };
-
-  if (transferredFrom) {
-    transfer = getTransfer(transferredFrom)
-  } else if (transferredTo) {
-    transfer = getTransfer(transferredTo, 'to')
-  }
-
-  if (transfer) {
-
-    if (transfer.type === 'holiday' || transfer.type === 'weekend') {
-      return {
-        date: isoDate,
-        type: 'dayOff',
-        meta: {
-          reason: 'transfer',
-          ...(transfer.holidayName && {holidayName: transfer.holidayName}),
-          ...(
-            transfer.direction === 'from' && { transferredFrom: transfer.date } ||
-            {transferredTo: transfer.date}
-          )
-        }
-      }
-    }
-
-    if (transfer.type === 'preholiday') {
-      return {
-        date: isoDate,
-        type: 'shortened',
-        meta: {
-          reason: 'transfer',
-          ...(
-            transfer.direction === 'from' && { transferredFrom: transfer.date } ||
-            {transferredTo: transfer.date}
-          ),
-          ...(transfer.holidayName && {holidayName: transfer.holidayName})
-        }
-      }
-    }
-
-    return {
-      date: isoDate,
-      type: 'working',
-      meta: {
-        reason: 'transfer',
-        ...(
-          transfer.direction === 'from' && { transferredFrom: transfer.date } ||
-          {transferredTo: transfer.date}
-        ),
-      }
-    }
-  }
-
-
-  const holidayName = HOLIDAYS[mmdd];
-  if (holidayName) {
-    return {
-      date: isoDate,
-      type: 'dayOff',
-      meta: {
-        reason: 'holiday',
-        holidayName,
-        ...(transferredTo && { transferredTo }),
-      } satisfies HolydayMeta,
-    };
+    return { type: 'holiday', holidayName: HOLIDAYS[mmdd] };
   }
 
   if (isWeekend(date)) {
+    return { type: 'weekend' };
+  }
+
+  date.setDate(date.getUTCDate() + 1);
+  const tomorrowMmdd = date.toISOString().substring(5, 10);
+  if (HOLIDAYS[tomorrowMmdd]) {
+    return { type: 'preholiday', holidayName: HOLIDAYS[tomorrowMmdd] };
+  }
+}
+
+export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
+  const isoDate = date.toISOString().substring(0, 10);
+
+  const transferredTo = transfers.find((t) => t.from == isoDate)?.to;
+  const transferredFrom = transfers.find((t) => t.to == isoDate)?.from;
+
+  if (transferredFrom) {
     return {
       date: isoDate,
       type: 'dayOff',
-    }
-  }
-
-  const tomorrowHolidayName = HOLIDAYS[getNextDayMmdd(date)];
-  if (tomorrowHolidayName) {
-    return {
-      date: isoDate,
-      type: 'shortened',
-      meta: {
-        reason: 'preholiday',
-        holidayName: tomorrowHolidayName,
-      } satisfies PreholidayMeta,
+      reason: {
+        type: 'transfer',
+        dir: 'from',
+        src: transferredFrom,
+      },
     };
   }
 
-  return {
-    date: isoDate,
-    type: 'working',
+  const reason = getReason(date);
+  if (reason?.type === 'holiday') {
+    return { date: isoDate, type: 'dayOff', reason: reason };
   }
 
-};
+  if (transferredTo) {
+    const transferDate = new Date(transferredTo);
+    const transferStatus = getReason(transferDate);
+    const transferType = getDayType(transferStatus);
+    return {
+      date: isoDate,
+      type: transferType,
+      reason: {
+        type: 'transfer',
+        dir: 'from',
+        src: transferredTo,
+      },
+    };
+  }
 
-export const buildCalendar = (
+  if (reason?.type == 'preholiday') {
+    return { date: isoDate, type: 'shortened', reason: reason };
+  }
+  if (reason?.type == 'weekend') {
+    return { date: isoDate, type: 'dayOff', reason: reason };
+  }
+  return { date: isoDate, type: 'working' };
+}
+
+export function buildCalendar(
   year: number,
-  transfers?: DayOffTransfer[] | [],
-) => {
+  transfers: DayOffTransfer[] | never[],
+) {
   const calendar: Day[] = [];
 
   const startDate = new Date(year + '-01-01');
   const endDate = new Date(year + '-12-31');
 
-  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-    const currentDay = getCalendarDay(d, transfers ?? []);
+  for (let d = startDate; d <= endDate; d.setDate(d.getUTCDate() + 1)) {
+    const currentDay = getCalendarDay(d, transfers);
     calendar.push(currentDay);
   }
   return calendar;
-};
+}

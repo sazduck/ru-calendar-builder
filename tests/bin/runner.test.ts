@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
 import { run } from '@bin/runner';
+import type { Day } from '@lib/types';
 
 function createReader(input: string): Readable {
   return Readable.from([input]);
@@ -28,7 +29,8 @@ describe('run', () => {
 
     const { writer, getOutput } = createWriter();
 
-    await run(createReader(input), writer, { parserOnly: true });
+    const reader = createReader(input);
+    await run(reader, writer, { parserOnly: true });
 
     expect(JSON.parse(getOutput())).toEqual({
       year: 2024,
@@ -68,32 +70,28 @@ describe('run', () => {
     expect(output).toContainEqual({
       date: '2024-01-07',
       type: 'dayOff',
-      meta: {
-        reason: 'holiday',
+      reason: {
+        type: 'holiday',
         holidayName: 'Рождество Христово',
-        transferredTo: "2024-12-31",
       },
-    });
+    } satisfies Day);
+  });
+});
+
+it('выводит только дни со reason при withReasonOnly', async () => {
+  const input = '2024';
+
+  const { writer, getOutput } = createWriter();
+
+  const reader = createReader(input);
+  await run(reader, writer, {
+    withReasonOnly: true,
   });
 
-  it('выводит только дни с meta.reason при withReasonOnly', async () => {
-    const input = '2024';
+  const output = JSON.parse(getOutput());
 
-    const { writer, getOutput } = createWriter();
+  expect(output).toBeInstanceOf(Array);
+  expect(output.length).toBeGreaterThan(0);
 
-    await run(createReader(input), writer, {
-      withReasonOnly: true,
-    });
-
-    const output = JSON.parse(getOutput());
-
-    expect(output).toBeInstanceOf(Array);
-    expect(output.length).toBeGreaterThan(0);
-
-    expect(
-      output.every((day: { meta?: { reason?: string } }) => day.meta?.reason),
-    ).toBe(true);
-  });
-
-  it;
+  expect(output.every((day: Day) => day.reason)).toBe(true);
 });

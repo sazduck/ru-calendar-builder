@@ -3,6 +3,7 @@
   "devDependencies": {
     "@types/node": "^25.9.8",
     "esbuild": "^0.28.2",
+    "eslint": "^10.11.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
@@ -18,9 +19,12 @@
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prebuild": "pn test:run && pn typecheck",
+    "prebuild": "pnpm test:run && pnpm typecheck",
     "build": "esbuild src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outfile=dist/cli.js",
     "start": "node dist/cli.js",
     "dev": "tsx src/bin/main.ts"
+  },
+  "dependencies": {
+    "valibot": "^1.5.0"
   }
 }

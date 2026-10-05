@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"],
       "@lib/*": ["./src/lib/*"],
       "@bin/*": ["./src/bin/*"],
+      "@/*": ["./src/*"],
     },
 
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "ESNext",
 
-    "noEmit": true,
+    "noEmit": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,

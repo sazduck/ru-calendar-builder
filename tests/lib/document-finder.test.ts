@@ -1,7 +1,7 @@
 import { fetchEoNumber } from '@lib/document-finder';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('getEoNumber', () => {
+describe('fetchEoNumber', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });

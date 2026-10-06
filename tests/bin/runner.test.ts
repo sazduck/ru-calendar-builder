@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { run } from '@bin/runner';
+import { run, type RunOptions } from '@bin/runner';
 import type { Day } from '@lib/types';
 
 function createReader(input: string): Readable {
@@ -76,22 +76,39 @@ describe('run', () => {
       },
     } satisfies Day);
   });
-});
+  it('выводит только дни со reason при withReasonOnly', async () => {
+    const input = '2024';
 
-it('выводит только дни со reason при withReasonOnly', async () => {
-  const input = '2024';
+    const { writer, getOutput } = createWriter();
 
-  const { writer, getOutput } = createWriter();
+    const reader = createReader(input);
+    const opts = {
+      withReasonOnly: true,
+    };
 
-  const reader = createReader(input);
-  await run(reader, writer, {
-    withReasonOnly: true,
+    await run(reader, writer, opts);
+
+    const output = JSON.parse(getOutput());
+
+    expect(output).toBeInstanceOf(Array);
+    expect(output.length).toBeGreaterThan(0);
+
+    expect(output.every((day: Day) => day.reason)).toBe(true);
   });
 
-  const output = JSON.parse(getOutput());
+  it('выбрасывает ошибку рпи невалидном JSON при флаге --json', async () => {
+    const input = 'invalid';
 
-  expect(output).toBeInstanceOf(Array);
-  expect(output.length).toBeGreaterThan(0);
+    const { writer } = createWriter();
 
-  expect(output.every((day: Day) => day.reason)).toBe(true);
+    const reader = createReader(input);
+
+    const opts: RunOptions = {
+      json: true,
+    };
+
+    await expect(run(reader, writer, opts)).rejects.toThrow('невалидный JSON');
+  });
+
+
 });

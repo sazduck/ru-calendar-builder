@@ -125,7 +125,7 @@ describe('praseJsonTransfers', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toContain('невалидный JSON');
+      expect(result.error).toContain('Невалидный JSON');
     }
   });
 

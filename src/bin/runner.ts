@@ -20,7 +20,7 @@ export function parseTransfersJson(raw: string): Result<ParseResult, string> {
   } catch {
     return {
       ok: false,
-      error: 'невалидный JSON',
+      error: 'Невалидный JSON',
     };
   }
 
@@ -62,8 +62,11 @@ export async function execute(
   options?: RunOptions,
 ): Promise<void> {
   if (options?.getLink) {
-    const link = getLink(options);
-    writer.end(link + '\n');
+    const link = await getLink(options);
+    if (!link.ok) {
+      throw link.error;
+    }
+    writer.end(link.value + '\n');
     return;
   }
 
@@ -104,6 +107,5 @@ export async function execute(
   const space = options?.format ? 2 : undefined;
   const jsonString = JSON.stringify(outputData, null, space);
 
-  writer.write(jsonString);
-  writer.end('\n');
+  writer.end(jsonString + '\n');
 }

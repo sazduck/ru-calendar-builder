@@ -1,4 +1,5 @@
 {
   "singleQuote": true,
-  "experimentalTernaries": true
+  "experimentalTernaries": true,
+  "arrowParens": "avoid"
 }

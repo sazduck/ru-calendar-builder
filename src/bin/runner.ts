@@ -1,7 +1,9 @@
-import type { Day, DayOffTransfer, ParseResult, Result } from '@lib/types';
+import * as v from 'valibot';
+import type { Day, Result } from '@lib/types';
 import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
 import { fetchEoNumber } from '@lib/document-finder';
+import { ParseResultSchema, type ParseResult } from '@lib/schemas';
 
 export interface RunOptions {
   parserOnly?: boolean | undefined;
@@ -11,73 +13,65 @@ export interface RunOptions {
   getLink?: number | undefined;
 }
 
-function isDayOffTransfer(value: unknown): value is DayOffTransfer {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as any).from === 'string' &&
-    typeof (value as any).to === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test((value as any).from) &&
-    /^\d{4}-\d{2}-\d{2}$/.test((value as any).to)
-  );
-}
-
 export function parseTransfersJson(raw: string): Result<ParseResult, string> {
-  let parsed: unknown;
+  let rawJson: unknown;
   try {
-    parsed = JSON.parse(raw);
+    rawJson = JSON.parse(raw);
   } catch {
-    return { ok: false, error: 'невалидный JSON' };
-  }
-
-  if (typeof parsed !== 'object' || parsed === null) {
-    return { ok: false, error: 'ожидается объект' };
-  }
-
-  const { year, transfers } = parsed as any;
-
-  if (typeof year !== 'number' || !Number.isInteger(year)) {
-    return { ok: false, error: 'year должен быть числом' };
-  }
-
-  if (!Array.isArray(transfers) || !transfers.every(isDayOffTransfer)) {
     return {
       ok: false,
-      error: 'transfers должен быть массивом DayOffTransfer',
+      error: 'невалидный JSON',
     };
   }
 
-  return { ok: true, value: { year, transfers } };
+  const result = v.safeParse(ParseResultSchema, rawJson);
+  if (!result.success) {
+    return { ok: false, error: v.summarize(result.issues) };
+  }
+  return { ok: true, value: result.output };
 }
 
-export async function run(
+async function getLink(options: RunOptions): Promise<Result<string, string>> {
+  const { getLink, format, withReasonOnly, json, parserOnly } = options;
+
+  if (!getLink) {
+    return { ok: false, error: '--get-link is not passed' };
+  }
+  if (format || withReasonOnly || json || parserOnly) {
+    return {
+      ok: false,
+      error: '--get-link cannot be used with any other flag',
+    };
+  }
+
+  const actualPravoGovURL =
+    'http://actual.pravo.gov.ru/content/content.html#pnum=';
+
+  const eoNumber = await fetchEoNumber(getLink);
+
+  if (!eoNumber.ok) {
+    return eoNumber;
+  }
+
+  return { ok: true, value: actualPravoGovURL + eoNumber.value };
+}
+
+export async function execute(
   reader: NodeJS.ReadableStream,
   writer: NodeJS.WritableStream,
   options?: RunOptions,
 ): Promise<void> {
-  if (Number.isNaN(options?.getLink)) {
-    throw Error('year should be a number');
-  }
-
   if (options?.getLink) {
-    if (options?.format || options.withReasonOnly || options?.json) {
-      throw Error('--get-link cannot be used with any other flag');
-    }
-
-    if (options?.getLink < 2014) {
-      throw Error('minimal year is 2014');
-    }
-
-    const actualPravoGovURL =
-      'http://actual.pravo.gov.ru/content/content.html#pnum=';
-    const eoNumber = await fetchEoNumber(options?.getLink);
-
-    writer.write(actualPravoGovURL + eoNumber);
-    writer.end('\n');
+    const link = getLink(options);
+    writer.end(link + '\n');
     return;
   }
 
-  if (options?.parserOnly && (options?.withReasonOnly || options.json)) {
+  if (
+    options &&
+    options.parserOnly &&
+    (options.withReasonOnly || options.json)
+  ) {
     throw Error(
       '--parser-only cannot be used with --with-reason-only or --transfers',
     );

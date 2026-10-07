@@ -1,5 +1,6 @@
-import { fetchEoNumber } from '@lib/document-finder';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as v from 'valibot';
+import { fetchEoNumber, safeFetch } from '@lib/document-finder';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('fetchEoNumber', () => {
   beforeEach(() => {
@@ -40,7 +41,123 @@ describe('fetchEoNumber', () => {
       }),
     } as Response);
 
-    const eoNumber = await fetchEoNumber(2027);
-    expect(eoNumber).toBe('0001202609180037');
+    const res = await fetchEoNumber(2027);
+    if (!res.ok) {
+      expect.fail('res.ok ожидался true');
+    }
+    expect(res.value).toBe('0001202609180037');
+  });
+});
+
+describe('safeFetch', () => {
+  const userSchema = v.object({
+    id: v.number(),
+    name: v.string(),
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('возвращает ok: true и валидные данные при успешном запросе', async () => {
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1, name: 'John Doe' }),
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    expect(result).toEqual({
+      ok: true,
+      value: { id: 1, name: 'John Doe' },
+    });
+  });
+
+  it('возвращает ok: false с текстом ошибки, если сервер ответил со статусом !ok', async () => {
+    const mockResponse = {
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Ошибка сервера: 404 Not Found',
+    });
+  });
+
+  it('возвращает ok: false с сообщением о невалидном JSON, если response.json() выбросил ошибку', async () => {
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new Error('SyntaxError');
+      },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Сервер вернул невалидный JSON',
+    });
+  });
+
+  it('возвращает ok: false со списком ошибок валидации, если данные не соответствуют схеме', async () => {
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'not-a-number' }),
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    if (result.ok) {
+      expect.fail('ожидался ok false')
+    };
+    expect(result.error).toContain('Ошибка валидации:');
+  });
+
+  it('возвращает ok: false с текстом системной ошибки, если fetch упал из-за сети или CORS', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Failed to fetch',
+    });
+  });
+
+  it('возвращает ok: false с дефолтным текстом, если fetch выбросил ошибку, не являющуюся инстансом Error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue('Строковая ошибка сети'));
+
+    const result = await safeFetch('https://example.com', userSchema);
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Сетевая ошибка',
+    });
+  });
+
+  it('возвращает корректный результат и проверяет, что переданные options прокидываются внутрь fetch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1, name: 'Alice' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const options: RequestInit = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+    await safeFetch('https://example.com', userSchema, options);
+
+    expect(fetchMock).toHaveBeenCalledWith('https://example.com', options);
   });
 });

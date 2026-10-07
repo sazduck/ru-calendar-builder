@@ -1,7 +1,3 @@
-export interface ParseResult {
-  year: number;
-  transfers: DayOffTransfer[];
-}
 
 export type DayType = 'working' | 'shortened' | 'dayOff';
 

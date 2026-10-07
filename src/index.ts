@@ -1,7 +1,6 @@
 export { parseTransfers } from './lib/parser';
 export { buildCalendar } from './lib/builder';
 export type {
-  ParseResult,
   DayType,
   HolidayReason ,
   PreholidayReason,
@@ -9,6 +8,5 @@ export type {
   TransferReason,
   CalendarStatus,
   Day,
-  DayOffTransfer,
   Result,
 } from './lib/types';

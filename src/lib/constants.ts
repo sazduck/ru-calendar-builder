@@ -17,7 +17,6 @@ export const HOLIDAYS: Record<string, string> = {
   '11-04': 'День народного единства',
 } as const;
 
-
 export const MONTHS: Record<string, string> = {
   января: '01',
   февраля: '02',

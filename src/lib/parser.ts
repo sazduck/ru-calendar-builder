@@ -1,12 +1,13 @@
 import { MONTHS } from "./constants";
-import type { DayOffTransfer, ParseResult, Result } from "./types";
+import type { ParseResult } from "./schemas";
+import type { DayOffTransfer,  Result } from "./types";
 
 export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const yearMatch = str.match(/\d{4}/);
   if (!yearMatch) {
     return {
       ok: false,
-      error: 'не найден год',
+      error: 'Не найден год',
     };
   }
   const year = yearMatch[0];
@@ -20,20 +21,20 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
     const dayFrom = m[1] ?? '';
     const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
     if (isDayFromLegal) {
-      return { ok: false, error: `неверное число: ${m[1]}` };
+      return { ok: false, error: `Неверное число: ${m[1]}` };
     }
     const rawMonthFrom = m[2]?.toLowerCase();
     const dayTo = m[3] ?? '';
     const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
     if (isDayToLegal) {
-      return { ok: false, error: `неверное число: ${m[3]}` };
+      return { ok: false, error: `Неверное число: ${m[3]}` };
     }
     const rawMonthTo = m[4]?.toLowerCase();
 
     if (!rawMonthFrom || !rawMonthTo) {
       return {
         ok: false,
-        error: 'ошибка структуры совпадения в регулярном выражении',
+        error: 'Ошибка структуры совпадения в регулярном выражении',
       };
     }
     const monthFrom = MONTHS[rawMonthFrom];
@@ -42,7 +43,7 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
     if (!monthFrom || !monthTo) {
       return {
         ok: false,
-        error: `неизвестный месяц в тексте: "${!monthFrom ? rawMonthFrom : rawMonthTo}"`,
+        error: `Неизвестный месяц в тексте: "${!monthFrom ? rawMonthFrom : rawMonthTo}"`,
       };
     }
 

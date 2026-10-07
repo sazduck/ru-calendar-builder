@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 
 describe('parseTransfers', () => {
-  it('должна вернуть корректные данные', async () => {
+  it('возвращает корректные данные', async () => {
     const str = `Перенести в 2026 году следующие выходные дни:
 с субботы 3 января на пятницу 9 января;
 с воскресенья 4 января на четверг 31 декабря.`;
@@ -20,7 +20,7 @@ describe('parseTransfers', () => {
     expect(result.value.year).toEqual(2026);
   });
 
-  it('должна вернуть ошибку при отсутствии года', () => {
+  it('возвращает ошибку при отсутствии года', () => {
     const result = parseTransfers('Текст без года');
     expect(result.ok).toBe(false);
     if (result.ok) {
@@ -29,18 +29,18 @@ describe('parseTransfers', () => {
     expect(result.error).toContain('год');
 
   });
-  it('должна вернуть ошибку при нахождении неверного числа', () => {
+  it('возвращает ошибку при нахождении неверного числа', () => {
     const result = parseTransfers('1337 год с мурзика 42 мямуня на ковырика 10 мяубря');
     if (result.ok) {
       expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
     }
-    expect(result.error).toContain('неверное число');
+    expect(result.error).toContain('Неверное число');
   });
-  it('должна вернуть ошибку при нахождении неизвестного месяца', () => {
+  it('возвращает ошибку при нахождении неизвестного месяца', () => {
     const result = parseTransfers('1337 год с мурзика 31 мямуня на ковырика 10 мяубря');
     if (result.ok) {
       expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
     }
-    expect(result.error).toContain('неизвестный месяц');
+    expect(result.error).toContain('Неизвестный месяц');
   });
 });

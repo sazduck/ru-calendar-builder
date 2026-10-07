@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { PravoGovDocumentResponseSchema } from './schemas';
 import type { Result } from './types';
+import { err, ok } from './helper';
 
 enum DocumentTypes {
   GovermentDecree = 'fd5a8766-f6fd-4ac2-8fd9-66f414d314ac',
@@ -20,29 +21,26 @@ export async function safeFetch<
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      return {
-        ok: false,
-        error: `Ошибка сервера: ${response.status} ${response.statusText}`,
-      };
+      return err(`Ошибка сервера: ${response.status} ${response.statusText}`);
     }
 
     let rawJson: unknown;
     try {
       rawJson = await response.json();
     } catch {
-      return { ok: false, error: 'Сервер вернул невалидный JSON' };
+      return err('Сервер вернул невалидный JSON');
     }
 
     const result = v.safeParse(schema, rawJson);
     if (!result.success) {
       const errorMsg = result.issues.map((i) => i.message).join(', ');
-      return { ok: false, error: `Ошибка валидации: ${errorMsg}` };
+      return err(`Ошибка валидации: ${errorMsg}`);
     }
-    return { ok: true, value: result.output };
+    return ok(result.output);
   } catch (networkError) {
     const message =
       networkError instanceof Error ? networkError.message : 'Сетевая ошибка';
-    return { ok: false, error: message };
+    return err(message);
   }
 }
 
@@ -64,8 +62,6 @@ export async function fetchEoNumber(
   const eoNumber = result.value.items.find((item) =>
     item.name.includes(year.toString()),
   )?.eoNumber;
-  return {
-    ok: true,
-    value: eoNumber,
-  };
+
+  return ok(eoNumber)
 }

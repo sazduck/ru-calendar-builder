@@ -1,14 +1,12 @@
-import { MONTHS } from "./constants";
-import type { ParseResult } from "./schemas";
-import type { DayOffTransfer,  Result } from "./types";
+import { MONTHS } from './constants';
+import type { ParseResult } from './schemas';
+import type { DayOffTransfer, Result } from './types';
+import { err, ok } from './helper';
 
 export const parseTransfers = (str: string): Result<ParseResult, string> => {
   const yearMatch = str.match(/\d{4}/);
   if (!yearMatch) {
-    return {
-      ok: false,
-      error: 'Не найден год',
-    };
+    return err('Не найден год');
   }
   const year = yearMatch[0];
 
@@ -21,30 +19,24 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
     const dayFrom = m[1] ?? '';
     const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
     if (isDayFromLegal) {
-      return { ok: false, error: `Неверное число: ${m[1]}` };
+      return err(`Неверное число: ${m[1]}`);
     }
     const rawMonthFrom = m[2]?.toLowerCase();
     const dayTo = m[3] ?? '';
     const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
     if (isDayToLegal) {
-      return { ok: false, error: `Неверное число: ${m[3]}` };
+      return err(`Неверное число: ${m[3]}`);
     }
     const rawMonthTo = m[4]?.toLowerCase();
 
     if (!rawMonthFrom || !rawMonthTo) {
-      return {
-        ok: false,
-        error: 'Ошибка структуры совпадения в регулярном выражении',
-      };
+      return err('Ошибка структуры совпадения в регулярном выражении');
     }
     const monthFrom = MONTHS[rawMonthFrom];
     const monthTo = MONTHS[rawMonthTo];
 
     if (!monthFrom || !monthTo) {
-      return {
-        ok: false,
-        error: `Неизвестный месяц в тексте: "${!monthFrom ? rawMonthFrom : rawMonthTo}"`,
-      };
+      return err(`Неизвестный месяц в тексте: ${!monthFrom ? rawMonthFrom : rawMonthTo}`);
     }
 
     transfers.push({
@@ -52,11 +44,8 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
       to: year + '-' + monthTo + '-' + dayTo.padStart(2, '0'),
     });
   }
-  return {
-    ok: true,
-    value: {
-      year: Number(year),
-      transfers,
-    },
-  };
+  return ok({
+    year: Number(year),
+    transfers
+  });
 };

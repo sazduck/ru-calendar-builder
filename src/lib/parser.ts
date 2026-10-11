@@ -3,7 +3,7 @@ import type { ParseResult } from './schemas';
 import type { DayOffTransfer, Result } from './types';
 import { err, ok } from './helper';
 const TRANSFERS_REGEX =
-  /с\s+[а-я]+\s+(?<fromDay>\d{1,2})\s+(?<fromMonth>[а-я]+).*?на\s+[а-я]+\s+(?<toDay>\d{1,2})\s+(?<toMonth>[а-я]+)/gm;
+  /с\s+[а-я]+\s+(?<dayFrom>\d{1,2})\s+(?<monthFrom>[а-я]+).*?на\s+[а-я]+\s+(?<dayTo>\d{1,2})\s+(?<monthTo>[а-я]+)/gm;
 const YEAR_REGEX = /\d{4}/;
 
 export const parseTransfers = (str: string): Result<ParseResult, string> => {
@@ -15,18 +15,24 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
 
   try {
     const transfers: DayOffTransfer[] = str.matchAll(TRANSFERS_REGEX).map(m => {
-      const dayFrom = m.groups?.fromDay ?? '';
+      const dayFrom = m.groups?.dayFrom;
+      if (!dayFrom) {
+        throw `Не найдена дата "с"`;
+      }
       const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
       if (isDayFromLegal) {
-        throw `Неверное число: ${m[1]}`;
+        throw `Неверное число: ${m.groups?.dayFrom}`;
       }
-      const rawMonthFrom = m[2]?.toLowerCase();
-      const dayTo = m[3] ?? '';
+      const rawMonthFrom = m.groups?.monthFrom;
+      const dayTo = m.groups?.dayTo;
+      if (!dayTo) {
+        throw `Не найдена дата "на"`;
+      }
       const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
       if (isDayToLegal) {
-        throw `Неверное число: ${m[3]}`;
+        throw `Неверное число: ${m.groups?.dayTo}`;
       }
-      const rawMonthTo = m[4]?.toLowerCase();
+      const rawMonthTo = m.groups?.monthTo?.toLowerCase();
 
       if (!rawMonthFrom || !rawMonthTo) {
         throw 'Ошибка структуры совпадения в регулярном выражении';

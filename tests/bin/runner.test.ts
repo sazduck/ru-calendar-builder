@@ -30,7 +30,7 @@ describe('execute', () => {
     const { writer, getOutput } = createWriter();
 
     const reader = createReader(input);
-    await execute(reader, writer, { parserOnly: true });
+    await execute(reader, writer, { transfersOnly: true });
 
     expect(JSON.parse(getOutput())).toEqual({
       year: 2024,
@@ -58,7 +58,7 @@ describe('execute', () => {
     const { writer, getOutput } = createWriter();
     const reader = createReader(input);
     await execute(reader, writer, {
-      json: true,
+      inputTransfers: true,
     });
 
     const outputRaw = getOutput();

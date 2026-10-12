@@ -6,10 +6,10 @@ import { fetchEoNumber } from '@lib/document-finder';
 import { ParseResultSchema, type ParseResult } from '@lib/schemas';
 
 export interface RunOptions {
-  parserOnly?: boolean | undefined;
-  format?: boolean | undefined;
-  withReasonOnly?: boolean | undefined;
-  json?: boolean | undefined;
+  transfersOnly?: boolean | undefined;
+  pretty?: boolean | undefined;
+  specialOnly?: boolean | undefined;
+  inputTransfers?: boolean | undefined;
   getLink?: number | undefined;
 }
 
@@ -32,7 +32,7 @@ export function parseTransfersJson(raw: string): Result<ParseResult, string> {
 }
 
 async function getLink(options: RunOptions): Promise<Result<string, string>> {
-  const { getLink, format, withReasonOnly, json, parserOnly } = options;
+  const { getLink, pretty: format, specialOnly: withReasonOnly, inputTransfers: json, transfersOnly: parserOnly } = options;
 
   if (!getLink) {
     return { ok: false, error: '--get-link is not passed' };
@@ -72,8 +72,8 @@ export async function execute(
 
   if (
     options &&
-    options.parserOnly &&
-    (options.withReasonOnly || options.json)
+    options.transfersOnly &&
+    (options.specialOnly || options.inputTransfers)
   ) {
     throw Error(
       '--parser-only cannot be used with --with-reason-only or --transfers',
@@ -88,23 +88,23 @@ export async function execute(
   }
   const inputText = Buffer.concat(chunks).toString('utf8');
   const result =
-    options?.json ? parseTransfersJson(inputText) : parseTransfers(inputText);
+    options?.inputTransfers ? parseTransfersJson(inputText) : parseTransfers(inputText);
 
   if (!result.ok) {
     throw Error(result.error);
   }
 
   let outputData: Day[] | ParseResult = result.value;
-  if (!options?.parserOnly) {
+  if (!options?.transfersOnly) {
     const { year, transfers } = result.value;
     outputData = buildCalendar(year, transfers);
   }
 
-  if (Array.isArray(outputData) && options?.withReasonOnly) {
-    outputData = outputData.filter((day) => day.reason);
+  if (Array.isArray(outputData) && options?.specialOnly) {
+    outputData = outputData.filter((day) => day.reason).filter(d => new Date(d.date));
   }
 
-  const space = options?.format ? 2 : undefined;
+  const space = options?.pretty ? 2 : undefined;
   const jsonString = JSON.stringify(outputData, null, space);
 
   writer.end(jsonString + '\n');

@@ -13,10 +13,10 @@ function printHelp(w: NodeJS.WritableStream) {
                           Если не указан, данные читаются из стандартного ввода (stdin).
 
 Опции:
-  -p, --parser-only       Запустить только парсер (выведет сырую структуру переносов)
-  -j, --json              Входные данные - JSON с transfers (вместо текстового формата)
-  -f, --format            Форматировать вывод JSON (с отступами в 2 пробела)
-  -r, --with-reason-only  Выводить только нетепичные дни (праздники/переносы/сокращенные)
+  -t, --trasnfers-only    Запустить только парсер (выведет сырую структуру переносов)
+  -i, --input-transfers   Входные данные - JSON с transfers (вместо текстового формата)
+  -p, --pretty            Форматировать вывод JSON (с отступами в 2 пробела)
+  -s, --special-only      Выводить только особые дни (праздники/переносы/сокращенные)
   -h, --help              Показать эту справку
   -l, --get-link <year>   Сформировать ссылку на сайт правительства РФ с текстом переносов
   `);
@@ -24,10 +24,10 @@ function printHelp(w: NodeJS.WritableStream) {
 
 const ARGS_CONFIG = {
   options: {
-    'parser-only': { type: 'boolean', short: 'p' },
-    'with-reason-only': { type: 'boolean', short: 'r' },
-    json: { type: 'boolean', short: 'j' },
-    format: { type: 'boolean', short: 'f' },
+    'transfers-only': { type: 'boolean', short: 't' },
+    'special-only': { type: 'boolean', short: 's' },
+    'input-transfers': { type: 'boolean', short: 'i' },
+    pretty: { type: 'boolean', short: 'p' },
     help: { type: 'boolean', short: 'h' },
     'get-link': { type: 'string', short: 'l' },
   },
@@ -53,10 +53,10 @@ export async function run() {
   const inputStream = filePath ? createReadStream(filePath) : process.stdin;
 
   await execute(inputStream, process.stdout, {
-    parserOnly: values['parser-only'],
-    format: values.format,
-    withReasonOnly: values['with-reason-only'],
-    json: values.json,
+    transfersOnly: values['transfers-only'],
+    pretty: values.pretty,
+    specialOnly: values['special-only'],
+    inputTransfers: values['input-transfers'],
     getLink:
       values['get-link'] !== undefined ? Number(values['get-link']) : undefined,
   });

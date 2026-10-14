@@ -13,50 +13,44 @@ export const parseTransfers = (str: string): Result<ParseResult, string> => {
   }
   const year = Number(yearMatch[0]);
 
-  try {
-    const transfers: DayOffTransfer[] = str.matchAll(TRANSFERS_REGEX).map(m => {
-      const dayFrom = m.groups?.dayFrom;
-      if (!dayFrom) {
-        throw `Не найдена дата "с"`;
-      }
-      const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
-      if (isDayFromLegal) {
-        throw `Неверное число: ${m.groups?.dayFrom}`;
-      }
-      const rawMonthFrom = m.groups?.monthFrom;
-      const dayTo = m.groups?.dayTo;
-      if (!dayTo) {
-        throw `Не найдена дата "на"`;
-      }
-      const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
-      if (isDayToLegal) {
-        throw `Неверное число: ${m.groups?.dayTo}`;
-      }
-      const rawMonthTo = m.groups?.monthTo?.toLowerCase();
+  const transfers: DayOffTransfer[] = [];
+  for (const m of str.matchAll(TRANSFERS_REGEX)) {
+    const dayFrom = m.groups?.dayFrom;
+    if (!dayFrom) {
+      return err(`Не найдена дата "с"`);
+    }
+    const isDayFromLegal = Number(dayFrom) <= 0 || Number(dayFrom) > 31;
+    if (isDayFromLegal) {
+      return err(`Неверное число: ${dayFrom}`);
+    }
+    const dayTo = m.groups?.dayTo;
+    if (!dayTo) {
+      return err(`Не найдена дата "на"`);
+    }
+    const isDayToLegal = Number(dayTo) <= 0 || Number(dayTo) > 31;
+    if (isDayToLegal) {
+      return err(`Неверное число: ${dayTo}`);
+    }
 
-      if (!rawMonthFrom || !rawMonthTo) {
-        throw 'Ошибка структуры совпадения в регулярном выражении';
-      }
-      const monthFrom = MONTHS[rawMonthFrom];
-      const monthTo = MONTHS[rawMonthTo];
+    const rawMonthFrom = m.groups?.monthFrom;
+    const rawMonthTo = m.groups?.monthTo;
 
-      if (!monthFrom || !monthTo) {
-        throw `Неизвестный месяц в тексте: ${!monthFrom ? rawMonthFrom : rawMonthTo}`;
-      }
+    if (!rawMonthFrom || !rawMonthTo) {
+      return err('Ошибка структуры совпадения в регулярном выражении');
+    }
+    const monthFrom = MONTHS[rawMonthFrom];
+    const monthTo = MONTHS[rawMonthTo];
 
-      const from = year + '-' + monthFrom + '-' + dayFrom.padStart(2, '0');
-      const to = year + '-' + monthTo + '-' + dayTo.padStart(2, '0');
+    if (!monthFrom || !monthTo) {
+      return err(
+        `Неизвестный месяц в тексте: ${!monthFrom ? rawMonthFrom : rawMonthTo}`,
+      );
+    }
 
-      return { from, to };
-    })
-    .toArray();
+    const from = year + '-' + monthFrom + '-' + dayFrom.padStart(2, '0');
+    const to = year + '-' + monthTo + '-' + dayTo.padStart(2, '0');
 
-    return ok({ year, transfers });
-  } catch (error) {
-    return (
-      typeof error === 'string' ? err(error)
-      : error instanceof Error ? err(error.message)
-      : err('unknown error')
-    );
+    transfers.push({ from, to });
   }
+  return ok({ year, transfers });
 };

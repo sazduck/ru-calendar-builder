@@ -3,10 +3,12 @@ import { PravoGovDocumentResponseSchema } from './schemas';
 import type { Result } from './types';
 import { err, ok } from './helper';
 
-enum DocumentTypes {
+enum DocumentType {
+  QueryParam = 'DocumentTypeId',
   GovermentDecree = 'fd5a8766-f6fd-4ac2-8fd9-66f414d314ac',
 }
-enum SingatoryAuthorityIds {
+enum SingatoryAuthority {
+  QueryParam = 'SignatoryAuthorityId',
   RFGoverment = '8005d8c9-4b6d-48d3-861a-2a37e69fccb3',
 }
 
@@ -33,7 +35,7 @@ export async function safeFetch<
 
     const result = v.safeParse(schema, rawJson);
     if (!result.success) {
-      const errorMsg = result.issues.map((i) => i.message).join(', ');
+      const errorMsg = result.issues.map(i => i.message).join(', ');
       return err(`Ошибка валидации: ${errorMsg}`);
     }
     return ok(result.output);
@@ -49,9 +51,9 @@ export async function fetchEoNumber(
 ): Promise<Result<string | undefined, string>> {
   const params = new URLSearchParams();
 
-  params.set('DocumentTypes', DocumentTypes.GovermentDecree);
-  params.set('SignatoryAuthorityId', SingatoryAuthorityIds.RFGoverment);
-  params.set('Name', 'О переносе выходных дней');
+  params.set(DocumentType.QueryParam, DocumentType.GovermentDecree);
+  params.set(SingatoryAuthority.QueryParam, SingatoryAuthority.RFGoverment);
+  params.set('Name', `О переносе выходных дней в ${year.toString()}`);
 
   const urlEndpoint = 'http://publication.pravo.gov.ru/api/Documents';
   const finalUrl = urlEndpoint + '?' + params.toString();
@@ -59,9 +61,7 @@ export async function fetchEoNumber(
   if (!result.ok) {
     return result;
   }
-  const eoNumber = result.value.items.find((item) =>
-    item.name.includes(year.toString()),
-  )?.eoNumber;
+  const eoNumber = result.value.items[0]?.eoNumber
 
-  return ok(eoNumber)
+  return ok(eoNumber);
 }

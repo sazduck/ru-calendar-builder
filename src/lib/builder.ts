@@ -47,8 +47,8 @@ export function getReason(
 export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
   const isoDate = date.toISOString().substring(0, 10);
 
-  const transferredTo = transfers.find((t) => t.from == isoDate)?.to;
-  const transferredFrom = transfers.find((t) => t.to == isoDate)?.from;
+  const transferredTo = transfers.find(t => t.from == isoDate)?.to;
+  const transferredFrom = transfers.find(t => t.to == isoDate)?.from;
 
   if (transferredFrom) {
     return {
@@ -76,7 +76,7 @@ export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
       type: transferType,
       reason: {
         type: 'transfer',
-        dir: 'from',
+        dir: 'to',
         src: transferredTo,
       },
     };

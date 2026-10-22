@@ -83,8 +83,8 @@ describe('execute', () => {
 
     const reader = createReader(input);
     const opts = {
-      withReasonOnly: true,
-    };
+      specialOnly: true,
+    } satisfies RunOptions;
 
     await execute(reader, writer, opts);
 

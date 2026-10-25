@@ -32,12 +32,18 @@ export function parseTransfersJson(raw: string): Result<ParseResult, string> {
 }
 
 async function getLink(options: RunOptions): Promise<Result<string, string>> {
-  const { getLink, pretty: format, specialOnly: withReasonOnly, inputTransfers: json, transfersOnly: parserOnly } = options;
+  const {
+    getLink,
+    pretty,
+    specialOnly,
+    inputTransfers,
+    transfersOnly,
+  } = options;
 
   if (!getLink) {
     return { ok: false, error: '--get-link is not passed' };
   }
-  if (format || withReasonOnly || json || parserOnly) {
+  if (pretty || specialOnly || inputTransfers || transfersOnly) {
     return {
       ok: false,
       error: '--get-link cannot be used with any other flag',
@@ -53,7 +59,7 @@ async function getLink(options: RunOptions): Promise<Result<string, string>> {
     return eoNumber;
   }
 
-  return { ok: true, value: actualPravoGovURL + eoNumber.value };
+  return { ok: true, value: `http://publication.pravo.gov.ru/document/${eoNumber.value}` };
 }
 
 export async function execute(
@@ -88,7 +94,9 @@ export async function execute(
   }
   const inputText = Buffer.concat(chunks).toString('utf8');
   const result =
-    options?.inputTransfers ? parseTransfersJson(inputText) : parseTransfers(inputText);
+    options?.inputTransfers ?
+      parseTransfersJson(inputText)
+    : parseTransfers(inputText);
 
   if (!result.ok) {
     throw Error(result.error);
@@ -101,7 +109,9 @@ export async function execute(
   }
 
   if (Array.isArray(outputData) && options?.specialOnly) {
-    outputData = outputData.filter((day) => day.reason).filter(d => new Date(d.date));
+    outputData = outputData
+      .filter(day => day.reason)
+      .filter(d => new Date(d.date));
   }
 
   const space = options?.pretty ? 2 : undefined;

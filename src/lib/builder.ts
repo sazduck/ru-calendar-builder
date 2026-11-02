@@ -52,12 +52,12 @@ export function getCalendarDay(date: Temporal.PlainDate, transfers: DayOffTransf
   const transferReason: TransferReason | undefined = foundTransfer
     ? {
         type: "transfer",
-        dir: foundTransfer.from === isoDate ? 'from' : 'to',
+        dir: foundTransfer.from === isoDate ? 'to' : 'from',
         src: foundTransfer.from === isoDate ? foundTransfer.to : foundTransfer.from,
       }
     : undefined;
 
-  if (transferReason?.dir == 'to') {
+  if (transferReason?.dir == 'from') {
     return {
       date: isoDate,
       type: 'dayOff',
@@ -70,7 +70,7 @@ export function getCalendarDay(date: Temporal.PlainDate, transfers: DayOffTransf
     return { date: isoDate, type: 'dayOff', reason };
   }
 
-  if (transferReason?.dir === 'from') {
+  if (transferReason?.dir === 'to') {
     const transferDate = Temporal.PlainDate.from(transferReason.src);
     const transferStatus = getReason(transferDate);
     const transferType = getDayType(transferStatus);

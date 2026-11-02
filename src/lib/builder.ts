@@ -7,8 +7,8 @@ import {
   type TransferReason,
 } from './types';
 
-export function isWeekend(date: Date): boolean {
-  return date.getUTCDay() === 0 || date.getUTCDay() === 6;
+export function isWeekend(date: Temporal.PlainDate): boolean {
+  return date.dayOfWeek === 6 || date.dayOfWeek === 7;
 }
 export function getDayType(
   reason?: Exclude<CalendarStatus, TransferReason>,
@@ -25,10 +25,9 @@ export function getDayType(
 }
 
 export function getReason(
-  dateSrc: Date,
+  date: Temporal.PlainDate,
 ): Exclude<CalendarStatus, TransferReason> | undefined {
-  const date = new Date(dateSrc);
-  const mmdd = date.toISOString().substring(5, 10);
+  const mmdd = date.toPlainMonthDay().toString();
   if (HOLIDAYS[mmdd]) {
     return { type: 'holiday', holidayName: HOLIDAYS[mmdd] };
   }
@@ -37,48 +36,48 @@ export function getReason(
     return { type: 'weekend' };
   }
 
-  date.setDate(date.getUTCDate() + 1);
-  const tomorrowMmdd = date.toISOString().substring(5, 10);
+  const tomrrow = date.add({days: 1})
+  const tomorrowMmdd = tomrrow.toPlainMonthDay().toString();
   if (HOLIDAYS[tomorrowMmdd]) {
     return { type: 'preholiday', holidayName: HOLIDAYS[tomorrowMmdd] };
   }
 }
 
-export function getCalendarDay(date: Date, transfers: DayOffTransfer[]): Day {
-  const isoDate = date.toISOString().substring(0, 10);
+export function getCalendarDay(date: Temporal.PlainDate, transfers: DayOffTransfer[]): Day {
+  const isoDate = date.toString();
 
-  const transferredTo = transfers.find(t => t.from == isoDate)?.to;
-  const transferredFrom = transfers.find(t => t.to == isoDate)?.from;
+  const foundTransfer = transfers
+    .find(tr => tr.from === isoDate || tr.to == isoDate)
 
-  if (transferredFrom) {
+  const transferReason: TransferReason | undefined = foundTransfer
+    ? {
+        type: "transfer",
+        dir: foundTransfer.from === isoDate ? 'from' : 'to',
+        src: foundTransfer.from === isoDate ? foundTransfer.to : foundTransfer.from,
+      }
+    : undefined;
+
+  if (transferReason?.dir == 'to') {
     return {
       date: isoDate,
       type: 'dayOff',
-      reason: {
-        type: 'transfer',
-        dir: 'from',
-        src: transferredFrom,
-      },
+      reason: transferReason
     };
   }
 
   const reason = getReason(date);
   if (reason?.type === 'holiday') {
-    return { date: isoDate, type: 'dayOff', reason: reason };
+    return { date: isoDate, type: 'dayOff', reason };
   }
 
-  if (transferredTo) {
-    const transferDate = new Date(transferredTo);
+  if (transferReason?.dir === 'from') {
+    const transferDate = Temporal.PlainDate.from(transferReason.src);
     const transferStatus = getReason(transferDate);
     const transferType = getDayType(transferStatus);
     return {
       date: isoDate,
       type: transferType,
-      reason: {
-        type: 'transfer',
-        dir: 'to',
-        src: transferredTo,
-      },
+      reason: transferReason,
     };
   }
 
@@ -97,12 +96,14 @@ export function buildCalendar(
 ) {
   const calendar: Day[] = [];
 
-  const startDate = new Date(year + '-01-01');
-  const endDate = new Date(year + '-12-31');
+  const startOfYear = new Temporal.PlainDate(year, 1, 1);
+  const totalDays = startOfYear.daysInYear
 
-  for (let d = startDate; d <= endDate; d.setDate(d.getUTCDate() + 1)) {
-    const currentDay = getCalendarDay(d, transfers);
-    calendar.push(currentDay);
+  for (let i = 0; i < totalDays; i++) {
+
+    const currentDay = startOfYear.add({ days: i });
+    const calendarDay = getCalendarDay(currentDay, transfers);
+    calendar.push(calendarDay);
   }
   return calendar;
 }

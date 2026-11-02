@@ -13,7 +13,7 @@ const transfers2024: DayOffTransfer[] = [
 
 describe('getCalendarDay', () => {
   const get2024CalendarDay = (date: string) =>
-    getCalendarDay(new Date(date), transfers2024);
+    getCalendarDay(Temporal.PlainDate.from(date), transfers2024);
 
   it('возвращает working', () => {
     const day = get2024CalendarDay('2024-01-09');

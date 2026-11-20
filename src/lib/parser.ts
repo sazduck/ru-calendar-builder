@@ -1,12 +1,12 @@
 import { MONTHS } from './constants';
-import type { ParseResult } from './schemas';
+import type { YearTransfers } from './schemas';
 import type { DayOffTransfer, Result } from './types';
 import { err, ok } from './helper';
 const TRANSFERS_REGEX =
   /с\s+[а-я]+\s+(?<dayFrom>\d{1,2})\s+(?<monthFrom>[а-я]+).*?на\s+[а-я]+\s+(?<dayTo>\d{1,2})\s+(?<monthTo>[а-я]+)/gm;
 const YEAR_REGEX = /\d{4}/;
 
-export const parseTransfers = (str: string): Result<ParseResult, string> => {
+export const parseTransfers = (str: string): Result<YearTransfers, string> => {
   const yearMatch = str.match(YEAR_REGEX);
   if (!yearMatch) {
     return err('Не найден год');

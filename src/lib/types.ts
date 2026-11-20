@@ -1,13 +1,23 @@
-
 export type DayType = 'working' | 'shortened' | 'dayOff';
+
+export type Holiday =
+  | 'Новый год'
+  | 'Новогодние каникулы'
+  | 'Рождество Христово'
+  | 'День защитника Отечества'
+  | 'Международный женский день'
+  | 'Праздник Весны и Труда'
+  | 'День Победы'
+  | 'День России'
+  | 'День народного единства';
 
 export interface HolidayReason {
   type: 'holiday';
-  holidayName: string;
+  holidayName: Holiday;
 }
 export interface PreholidayReason {
   type: 'preholiday';
-  holidayName: string;
+  holidayName: Holiday;
 }
 export interface WeekendReason {
   type: 'weekend';

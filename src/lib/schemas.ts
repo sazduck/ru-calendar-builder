@@ -49,7 +49,7 @@ export const DayOffTransferSchema = v.object({
 
 export type DayOffTransfer = v.InferOutput<typeof DayOffTransferSchema>;
 
-export const ParseResultSchema = v.object({
+export const YearTransfersSchema = v.object({
   year: v.pipe(
     v.number((issue) => `год должен быть числом, пришло: ${issue.received}`),
     v.minValue(2001, 'мнимальный год 2001'),
@@ -57,5 +57,5 @@ export const ParseResultSchema = v.object({
   transfers: v.array(DayOffTransferSchema, 'переносы должны быть массивом'),
 });
 
-export type ParseResult = v.InferOutput<typeof ParseResultSchema>;
-export type PraseResultIssues = v.InferIssue<typeof ParseResultSchema>;
+export type YearTransfers = v.InferOutput<typeof YearTransfersSchema>;
+export type YearTransfersIssues = v.InferIssue<typeof YearTransfersSchema>;

@@ -3,7 +3,7 @@ import type { Day, Result } from '@lib/types';
 import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
 import { fetchEoNumber } from '@lib/document-finder';
-import { ParseResultSchema, type ParseResult } from '@lib/schemas';
+import { YearTransfersSchema, type YearTransfers } from '@lib/schemas';
 
 export interface RunOptions {
   transfersOnly?: boolean | undefined;
@@ -13,7 +13,7 @@ export interface RunOptions {
   getLink?: number | undefined;
 }
 
-export function parseTransfersJson(raw: string): Result<ParseResult, string> {
+export function parseTransfersJson(raw: string): Result<YearTransfers, string> {
   let rawJson: unknown;
   try {
     rawJson = JSON.parse(raw);
@@ -24,7 +24,7 @@ export function parseTransfersJson(raw: string): Result<ParseResult, string> {
     };
   }
 
-  const result = v.safeParse(ParseResultSchema, rawJson);
+  const result = v.safeParse(YearTransfersSchema, rawJson);
   if (!result.success) {
     return { ok: false, error: v.summarize(result.issues) };
   }
@@ -102,7 +102,7 @@ export async function execute(
     throw Error(result.error);
   }
 
-  let outputData: Day[] | ParseResult = result.value;
+  let outputData: Day[] | YearTransfers = result.value;
   if (!options?.transfersOnly) {
     const { year, transfers } = result.value;
     outputData = buildCalendar(year, transfers);

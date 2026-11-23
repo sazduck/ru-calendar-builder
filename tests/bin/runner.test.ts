@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { execute, parseTransfersJson, type RunOptions } from '@bin/runner';
+import { execute, parseTransfersJson, type RunConfig, createRunConfig } from '@bin/runner';
 import type { Day } from '@lib/types';
 
 function createReader(input: string): Readable {
@@ -24,13 +24,13 @@ function createWriter() {
 }
 
 describe('execute', () => {
-  it('возвращает результат parser в режиме parser-only', async () => {
+  it('возвращает результат parser в режиме transfers-only', async () => {
     const input = '2024 с субботы 27 апреля на понедельник 29 апреля';
 
     const { writer, getOutput } = createWriter();
 
     const reader = createReader(input);
-    await execute(reader, writer, { transfersOnly: true });
+    await execute(reader, writer, createRunConfig('parse', {mode: {type: 'transfers-only'}}));
 
     expect(JSON.parse(getOutput())).toEqual({
       year: 2024,
@@ -43,7 +43,7 @@ describe('execute', () => {
     });
   });
 
-  it('возвращает календарь из результата parser', async () => {
+  it('возвращает календарь из результата parse, флаг --transfers-input', async () => {
     const input = JSON.stringify({
       year: 2024,
       transfers: [
@@ -57,9 +57,11 @@ describe('execute', () => {
 
     const { writer, getOutput } = createWriter();
     const reader = createReader(input);
-    await execute(reader, writer, {
-      inputTransfers: true,
-    });
+    const config = createRunConfig(
+      'parse',
+      { transfersInput: true },
+    );
+    await execute(reader, writer, config);
 
     const outputRaw = getOutput();
     const output = JSON.parse(outputRaw);
@@ -76,15 +78,17 @@ describe('execute', () => {
       },
     } satisfies Day);
   });
-  it('возвращает только дни со reason при with-reason-only', async () => {
+
+  it('возвращает только дни со reason при special-only', async () => {
     const input = '2024';
 
     const { writer, getOutput } = createWriter();
 
     const reader = createReader(input);
-    const opts = {
-      specialOnly: true,
-    } satisfies RunOptions;
+    const opts = createRunConfig(
+      'parse',
+      {mode: {type: 'calendar', filter: 'special-only'}},
+    );
 
     await execute(reader, writer, opts);
 
@@ -95,18 +99,13 @@ describe('execute', () => {
 
     expect(output.every((day: Day) => day.reason)).toBe(true);
   });
-
-
 });
 
 describe('praseJsonTransfers', () => {
-
   it('успешно парсит валидный JSON переносов', () => {
     const validJson = JSON.stringify({
       year: 2026,
-      transfers: [
-        { from: '2026-01-03', to: '2026-05-08' }
-      ]
+      transfers: [{ from: '2026-01-03', to: '2026-05-08' }],
     });
 
     const result = parseTransfersJson(validJson);
@@ -132,7 +131,7 @@ describe('praseJsonTransfers', () => {
   it('возвращает ошибку, если год меньше 2001', () => {
     const invalidJson = JSON.stringify({
       year: 2000, // Граничное значение
-      transfers: []
+      transfers: [],
     });
 
     const result = parseTransfersJson(invalidJson);
@@ -147,8 +146,8 @@ describe('praseJsonTransfers', () => {
     const invalidJson = JSON.stringify({
       year: 2026,
       transfers: [
-        { from: '03.01.2026', to: '2026-05-08' } // Неверный формат 'from'
-      ]
+        { from: '03.01.2026', to: '2026-05-08' }, // Неверный формат 'from'
+      ],
     });
 
     const result = parseTransfersJson(invalidJson);
@@ -158,4 +157,4 @@ describe('praseJsonTransfers', () => {
       expect(result.error).toContain('формате yyyy-mm-dd');
     }
   });
-})
+});

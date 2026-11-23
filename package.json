@@ -1,5 +1,32 @@
 {
   "name": "ru-calendar-builder",
+  "version": "0.5.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "ru-calendar-builder": "./dist/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "pnpm test:run && pnpm typecheck",
+    "build:js": "esbuild src/index.ts src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outdir=dist --entry-names=[name]",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist --rootDir src",
+    "build": "pnpm build:js && pnpm build:types",
+    "start": "node dist/main.js",
+    "dev": "tsx src/bin/main.ts"
+  },
   "devDependencies": {
     "@types/node": "^25.9.9",
     "@vitest/coverage-v8": "4.1.11",
@@ -9,22 +36,6 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
-  },
-  "type": "module",
-  "bin": {
-    "ru-cal": "dist/cli.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "prebuild": "pnpm test:run && pnpm typecheck",
-    "build": "esbuild src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outfile=dist/cli.js",
-    "start": "node dist/cli.js",
-    "dev": "tsx src/bin/main.ts"
   },
   "dependencies": {
     "valibot": "^1.5.0"

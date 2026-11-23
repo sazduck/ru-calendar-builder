@@ -4,13 +4,63 @@ import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
 import { fetchEoNumber } from '@lib/document-finder';
 import { YearTransfersSchema, type YearTransfers } from '@lib/schemas';
+import { err, ok } from '@lib/helper';
 
-export interface RunOptions {
-  transfersOnly?: boolean | undefined;
-  pretty?: boolean | undefined;
-  specialOnly?: boolean | undefined;
-  inputTransfers?: boolean | undefined;
-  getLink?: number | undefined;
+export type DayFilter = 'all' | 'special-only';
+
+export type OutputMode =
+  { type: 'calendar'; filter: DayFilter } | { type: 'transfers-only' };
+
+export type OutputFormat = 'raw' | 'pretty' | 'compact';
+
+export interface GetLinkOptions {
+  year: number;
+}
+
+export interface ParseOptions {
+  transfersInput: boolean;
+  mode: OutputMode;
+  format: OutputFormat;
+}
+
+export type RunConfig =
+  | { command: 'get-link'; options: GetLinkOptions }
+  | { command: 'parse'; options: ParseOptions };
+
+export const DEFAULT_PARSE_OPTIONS: ParseOptions = {
+  transfersInput: false,
+  mode: { type: 'calendar', filter: 'all' },
+  format: 'raw',
+}
+
+export function createRunConfig(
+  command: 'get-link',
+  options: GetLinkOptions,
+): Extract<RunConfig, { command: 'get-link' }>;
+
+export function createRunConfig(
+  command?: 'parse',
+  options?: Partial<ParseOptions>,
+): Extract<RunConfig, { command: 'parse' }>;
+
+export function createRunConfig(
+  command: RunConfig['command'] = 'parse',
+  options: Partial<ParseOptions> | GetLinkOptions = {},
+): RunConfig {
+  if (command === 'get-link') {
+    return {
+      command: 'get-link',
+      options: options as GetLinkOptions,
+    };
+  }
+
+  return {
+    command: 'parse',
+    options: {
+      ...DEFAULT_PARSE_OPTIONS,
+      ...(options as Partial<ParseOptions>),
+    },
+  };
 }
 
 export function parseTransfersJson(raw: string): Result<YearTransfers, string> {
@@ -18,74 +68,74 @@ export function parseTransfersJson(raw: string): Result<YearTransfers, string> {
   try {
     rawJson = JSON.parse(raw);
   } catch {
-    return {
-      ok: false,
-      error: 'Невалидный JSON',
-    };
+    return err('Невалидный JSON');
   }
 
   const result = v.safeParse(YearTransfersSchema, rawJson);
   if (!result.success) {
-    return { ok: false, error: v.summarize(result.issues) };
+    return err(v.summarize(result.issues));
   }
-  return { ok: true, value: result.output };
+  return ok(result.output);
 }
 
-async function getLink(options: RunOptions): Promise<Result<string, string>> {
-  const {
-    getLink,
-    pretty,
-    specialOnly,
-    inputTransfers,
-    transfersOnly,
-  } = options;
-
-  if (!getLink) {
-    return { ok: false, error: '--get-link is not passed' };
-  }
-  if (pretty || specialOnly || inputTransfers || transfersOnly) {
-    return {
-      ok: false,
-      error: '--get-link cannot be used with any other flag',
-    };
-  }
-
-  const actualPravoGovURL =
-    'http://actual.pravo.gov.ru/content/content.html#pnum=';
-
-  const eoNumber = await fetchEoNumber(getLink);
+async function getLink(
+  options: GetLinkOptions,
+): Promise<Result<string, string>> {
+  const eoNumber = await fetchEoNumber(options.year);
 
   if (!eoNumber.ok) {
     return eoNumber;
   }
 
-  return { ok: true, value: `http://publication.pravo.gov.ru/document/${eoNumber.value}` };
+  return ok(`http://publication.pravo.gov.ru/document/${eoNumber.value}`);
 }
 
-export async function execute(
+function isDaySpecial(day: Day): boolean {
+  return day.reason && day.reason.type !== 'weekend' ? true : false;
+}
+
+function compact(data: any) {
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '[]';
+    return `[\n  ${data.map(item => JSON.stringify(item)).join(',\n  ')}\n]`;
+  }
+
+  return JSON.stringify(data, null, 2).replace(
+    /\{\n\s+([^{}[\]]+?)\n\s+\}/g,
+    (_, content) => {
+      return `{ ${content.replace(/\n\s+/g, ' ')} }`;
+    },
+  );
+}
+
+function formatOutput(data: any, format: OutputFormat) {
+  switch (format) {
+    case 'compact':
+      return compact(data);
+    case 'pretty':
+      return JSON.stringify(data, null, 2);
+    case 'raw':
+      return JSON.stringify(data);
+  }
+}
+
+async function getLinkComand(
+  writer: NodeJS.WritableStream,
+  options: GetLinkOptions,
+) {
+  const link = await getLink(options);
+  if (!link.ok) {
+    throw link.error;
+  }
+  writer.end(link.value + '\n');
+  return;
+}
+
+async function parseCommand(
   reader: NodeJS.ReadableStream,
   writer: NodeJS.WritableStream,
-  options?: RunOptions,
-): Promise<void> {
-  if (options?.getLink) {
-    const link = await getLink(options);
-    if (!link.ok) {
-      throw link.error;
-    }
-    writer.end(link.value + '\n');
-    return;
-  }
-
-  if (
-    options &&
-    options.transfersOnly &&
-    (options.specialOnly || options.inputTransfers)
-  ) {
-    throw Error(
-      '--parser-only cannot be used with --with-reason-only or --transfers',
-    );
-  }
-
+  options: ParseOptions,
+) {
   const chunks: Buffer[] = [];
 
   reader.setEncoding('utf-8');
@@ -93,29 +143,41 @@ export async function execute(
     chunks.push(Buffer.from(chunk));
   }
   const inputText = Buffer.concat(chunks).toString('utf8');
-  const result =
-    options?.inputTransfers ?
+  const yearTransfers =
+    options.transfersInput ?
       parseTransfersJson(inputText)
     : parseTransfers(inputText);
 
-  if (!result.ok) {
-    throw Error(result.error);
+  if (!yearTransfers.ok) {
+    throw Error(yearTransfers.error);
   }
 
-  let outputData: Day[] | YearTransfers = result.value;
-  if (!options?.transfersOnly) {
-    const { year, transfers } = result.value;
-    outputData = buildCalendar(year, transfers);
+  const format = options.format;
+
+  if (options.mode.type === 'transfers-only') {
+    const formated = formatOutput(yearTransfers.value, format);
+    writer.end(formated + '\n');
+    return;
   }
 
-  if (Array.isArray(outputData) && options?.specialOnly) {
-    outputData = outputData
-      .filter(day => day.reason)
-      .filter(d => new Date(d.date));
+  const { year, transfers } = yearTransfers.value;
+  const calendar = buildCalendar(year, transfers);
+
+  const isSpecialOnly = options.mode.filter === 'special-only';
+  const filtered = isSpecialOnly ? calendar.filter(isDaySpecial) : calendar;
+  const formated = formatOutput(filtered, format);
+  writer.end(formated + '\n');
+}
+
+export async function execute(
+  reader: NodeJS.ReadableStream,
+  writer: NodeJS.WritableStream,
+  config: RunConfig,
+): Promise<void> {
+  switch (config.command) {
+    case 'get-link':
+      return getLinkComand(writer, config.options);
+    case 'parse':
+      return parseCommand(reader, writer, config.options);
   }
-
-  const space = options?.pretty ? 2 : undefined;
-  const jsonString = JSON.stringify(outputData, null, space);
-
-  writer.end(jsonString + '\n');
 }

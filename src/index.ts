@@ -2,7 +2,7 @@ export { parseTransfers } from './lib/parser';
 export { buildCalendar } from './lib/builder';
 export type {
   DayType,
-  HolidayReason ,
+  HolidayReason,
   PreholidayReason,
   WeekendReason,
   TransferReason,
@@ -10,3 +10,17 @@ export type {
   Day,
   Result,
 } from './lib/types';
+
+export {
+  DocumentItemSchema,
+  PravoGovDocumentResponseSchema,
+  DayOffTransferSchema,
+  YearTransfersSchema,
+} from './lib/schemas';
+
+export type {
+  PravoGovDocumentResponse,
+  DayOffTransfer,
+  YearTransfers,
+  YearTransfersIssues,
+} from './lib/schemas';

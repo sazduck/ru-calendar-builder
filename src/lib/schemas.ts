@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-const DocumentItemSchema = v.object({
+export const DocumentItemSchema = v.object({
   id: v.string(),
   eoNumber: v.string(),
   name: v.string(),

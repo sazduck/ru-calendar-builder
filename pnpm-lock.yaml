@@ -27,6 +27,9 @@ importers:
       prettier:
         specifier: ^3.9.9
         version: 3.10.1
+      temporal-spec:
+        specifier: ^1.0.1
+        version: 1.0.1
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -1025,6 +1028,9 @@ packages:
     resolution: {integrity: sha512-oRSIpR8pxT1Wr2FquTNnGet79b3BWljqOuoW/h4oBhxJ/HUbX5nX6JSruTkvXDCFMwDPvsaTTbvMLKZWSy0R5g==}
     engines: {node: '>=8'}
 
+  temporal-spec@1.0.1:
+    resolution: {integrity: sha512-wxVoanmDeavXie1vu2JaQ3WIc3JZnWAOYFBsJyATaVsXsycKYUflGsyBmrRSnoCpZJpwPyr38VpgSUlQ8CbFxg==}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -1977,6 +1983,8 @@ snapshots:
   supports-color@7.1.0:
     dependencies:
       has-flag: 4.0.0
+
+  temporal-spec@1.0.1: {}
 
   tinybench@2.9.0: {}
 

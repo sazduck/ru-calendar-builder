@@ -22,7 +22,7 @@
     "moduleDetection": "force",
 
     "lib": ["esnext"],
-    "types": ["node"],
+    "types": ["node", "temporal-spec"],
     "skipLibCheck": true,
 
     "declaration": true,

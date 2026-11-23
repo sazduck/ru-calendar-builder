@@ -1,24 +1,24 @@
-import * as v from 'valibot';
-import { PravoGovDocumentResponseSchema } from './schemas';
-import type { Result } from './types';
-import { err, ok } from './helper';
+import { parsePravoGovResponse } from './validators';
+import type { PravoGovDocumentResponse, Result } from './types';
+import { err, ok } from './helpers';
 
 enum DocumentType {
   QueryParam = 'DocumentTypeId',
   GovermentDecree = 'fd5a8766-f6fd-4ac2-8fd9-66f414d314ac',
 }
+
 enum SingatoryAuthority {
   QueryParam = 'SignatoryAuthorityId',
   RFGoverment = '8005d8c9-4b6d-48d3-861a-2a37e69fccb3',
 }
 
-export async function safeFetch<
-  TSchema extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
->(
+export type Validator<T> = (data: unknown) => Result<T, string>;
+
+export async function safeFetch<T>(
   url: string,
-  schema: TSchema,
+  validate: Validator<T>,
   options?: RequestInit,
-): Promise<Result<v.InferOutput<TSchema>, string>> {
+): Promise<Result<T, string>> {
   try {
     const response = await fetch(url, options);
 
@@ -33,12 +33,12 @@ export async function safeFetch<
       return err('Сервер вернул невалидный JSON');
     }
 
-    const result = v.safeParse(schema, rawJson);
-    if (!result.success) {
-      const errorMsg = result.issues.map(i => i.message).join(', ');
-      return err(`Ошибка валидации: ${errorMsg}`);
+    const result = validate(rawJson);
+    if (!result.ok) {
+      return err(`Ошибка валидации: ${result.error}`);
     }
-    return ok(result.output);
+
+    return ok(result.value);
   } catch (networkError) {
     const message =
       networkError instanceof Error ? networkError.message : 'Сетевая ошибка';
@@ -56,12 +56,17 @@ export async function fetchEoNumber(
   params.set('Name', `О переносе выходных дней в ${year.toString()}`);
 
   const urlEndpoint = 'http://publication.pravo.gov.ru/api/Documents';
-  const finalUrl = urlEndpoint + '?' + params.toString();
-  const result = await safeFetch(finalUrl, PravoGovDocumentResponseSchema);
+  const finalUrl = `${urlEndpoint}?${params.toString()}`;
+
+  const result = await safeFetch<PravoGovDocumentResponse>(
+    finalUrl,
+    parsePravoGovResponse,
+  );
+
   if (!result.ok) {
     return result;
   }
-  const eoNumber = result.value.items[0]?.eoNumber
 
+  const eoNumber = result.value.items[0]?.eoNumber;
   return ok(eoNumber);
 }

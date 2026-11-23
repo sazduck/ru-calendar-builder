@@ -1,14 +1,4 @@
-import type { Holiday } from "./types";
-
-export const WEEKDAYS = [
-  'Sun',
-  'Mon',
-  'Tue',
-  'Wed',
-  'Thu',
-  'Fri',
-  'Sat',
-] as const;
+import type { Holiday } from './types';
 
 export const HOLIDAYS: Record<string, Holiday> = {
   '01-01': 'Новый год',

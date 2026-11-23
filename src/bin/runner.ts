@@ -1,10 +1,9 @@
-import * as v from 'valibot';
-import type { Day, Result } from '@lib/types';
+import type { Day, Result, YearTransfers } from '@lib/types';
 import { buildCalendar } from '@lib/builder';
 import { parseTransfers } from '@lib/parser';
-import { fetchEoNumber } from '@lib/document-finder';
-import { YearTransfersSchema, type YearTransfers } from '@lib/schemas';
-import { err, ok } from '@lib/helper';
+import { fetchEoNumber } from '@lib/pravo';
+import { parseYearTransfers } from '@lib/validators';
+import { err, ok } from '@lib/helpers';
 
 export type DayFilter = 'all' | 'special-only';
 
@@ -31,18 +30,16 @@ export const DEFAULT_PARSE_OPTIONS: ParseOptions = {
   transfersInput: false,
   mode: { type: 'calendar', filter: 'all' },
   format: 'raw',
-}
+};
 
 export function createRunConfig(
   command: 'get-link',
   options: GetLinkOptions,
 ): Extract<RunConfig, { command: 'get-link' }>;
-
 export function createRunConfig(
   command?: 'parse',
   options?: Partial<ParseOptions>,
 ): Extract<RunConfig, { command: 'parse' }>;
-
 export function createRunConfig(
   command: RunConfig['command'] = 'parse',
   options: Partial<ParseOptions> | GetLinkOptions = {},
@@ -71,11 +68,7 @@ export function parseTransfersJson(raw: string): Result<YearTransfers, string> {
     return err('Невалидный JSON');
   }
 
-  const result = v.safeParse(YearTransfersSchema, rawJson);
-  if (!result.success) {
-    return err(v.summarize(result.issues));
-  }
-  return ok(result.output);
+  return parseYearTransfers(rawJson);
 }
 
 async function getLink(
@@ -87,14 +80,20 @@ async function getLink(
     return eoNumber;
   }
 
+  if (!eoNumber.value) {
+    return err(
+      `Документ о переносе выходных дней на ${options.year} год не найден`,
+    );
+  }
+
   return ok(`http://publication.pravo.gov.ru/document/${eoNumber.value}`);
 }
 
 function isDaySpecial(day: Day): boolean {
-  return day.reason && day.reason.type !== 'weekend' ? true : false;
+  return Boolean(day.reason && day.reason.type !== 'weekend');
 }
 
-function compact(data: any) {
+function compact(data: unknown): string {
   if (Array.isArray(data)) {
     if (data.length === 0) return '[]';
     return `[\n  ${data.map(item => JSON.stringify(item)).join(',\n  ')}\n]`;
@@ -102,13 +101,11 @@ function compact(data: any) {
 
   return JSON.stringify(data, null, 2).replace(
     /\{\n\s+([^{}[\]]+?)\n\s+\}/g,
-    (_, content) => {
-      return `{ ${content.replace(/\n\s+/g, ' ')} }`;
-    },
+    (_, content: string) => `{ ${content.replace(/\n\s+/g, ' ')} }`,
   );
 }
 
-function formatOutput(data: any, format: OutputFormat) {
+function formatOutput(data: unknown, format: OutputFormat): string {
   switch (format) {
     case 'compact':
       return compact(data);
@@ -119,23 +116,22 @@ function formatOutput(data: any, format: OutputFormat) {
   }
 }
 
-async function getLinkComand(
+async function getLinkCommand(
   writer: NodeJS.WritableStream,
   options: GetLinkOptions,
-) {
+): Promise<void> {
   const link = await getLink(options);
   if (!link.ok) {
-    throw link.error;
+    throw new Error(link.error);
   }
-  writer.end(link.value + '\n');
-  return;
+  writer.end(`${link.value}\n`);
 }
 
 async function parseCommand(
   reader: NodeJS.ReadableStream,
   writer: NodeJS.WritableStream,
   options: ParseOptions,
-) {
+): Promise<void> {
   const chunks: Buffer[] = [];
 
   reader.setEncoding('utf-8');
@@ -143,20 +139,21 @@ async function parseCommand(
     chunks.push(Buffer.from(chunk));
   }
   const inputText = Buffer.concat(chunks).toString('utf8');
+
   const yearTransfers =
     options.transfersInput ?
       parseTransfersJson(inputText)
     : parseTransfers(inputText);
 
   if (!yearTransfers.ok) {
-    throw Error(yearTransfers.error);
+    throw new Error(yearTransfers.error);
   }
 
-  const format = options.format;
+  const { format } = options;
 
   if (options.mode.type === 'transfers-only') {
-    const formated = formatOutput(yearTransfers.value, format);
-    writer.end(formated + '\n');
+    const formatted = formatOutput(yearTransfers.value, format);
+    writer.end(`${formatted}\n`);
     return;
   }
 
@@ -165,18 +162,18 @@ async function parseCommand(
 
   const isSpecialOnly = options.mode.filter === 'special-only';
   const filtered = isSpecialOnly ? calendar.filter(isDaySpecial) : calendar;
-  const formated = formatOutput(filtered, format);
-  writer.end(formated + '\n');
+  const formatted = formatOutput(filtered, format);
+  writer.end(`${formatted}\n`);
 }
 
 export async function execute(
   reader: NodeJS.ReadableStream,
   writer: NodeJS.WritableStream,
-  config: RunConfig,
+  config: RunConfig = createRunConfig(),
 ): Promise<void> {
   switch (config.command) {
     case 'get-link':
-      return getLinkComand(writer, config.options);
+      return getLinkCommand(writer, config.options);
     case 'parse':
       return parseCommand(reader, writer, config.options);
   }

@@ -26,6 +26,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./pravo": {
+      "types": "./dist/lib/document-finder.d.ts",
+      "default": "./dist/lib/document-finder.js"
+    },
+    "./constants": {
+      "types": "./dist/lib/constants.d.ts",
+      "default": "./dist/lib/constants.js"
+    },
+    "./helpers": {
+      "types": "./dist/lib/helper.d.ts",
+      "default": "./dist/lib/helper.js"
+    },
+    "./validators": {
+      "types": "./dist/lib/validators.d.ts",
+      "default": "./dist/lib/validators.js"
     }
   },
   "bin": {
@@ -39,7 +55,7 @@
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "prebuild": "npm run test:run && npm run typecheck",
-    "build:js": "esbuild src/index.ts src/bin/main.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outdir=dist --entry-names=[name]",
+    "build:js": "esbuild src/index.ts src/bin/main.ts src/lib/document-finder.ts src/lib/constants.ts src/lib/helper.ts src/lib/validators.ts --bundle --platform=node --target=node22 --format=esm --sourcemap --outdir=dist --outbase=src",
     "build:types": "tsc -p tsconfig.build.json",
     "build": "npm run build:js && npm run build:types",
     "start": "node dist/main.js",
@@ -55,8 +71,5 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
-  },
-  "dependencies": {
-    "valibot": "^1.5.0"
   }
 }

@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { fetchEoNumber, safeFetch } from '@lib/document-finder';
+import { fetchEoNumber, safeFetch } from '@lib/pravo';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('fetchEoNumber', () => {
@@ -50,10 +49,7 @@ describe('fetchEoNumber', () => {
 });
 
 describe('safeFetch', () => {
-  const userSchema = v.object({
-    id: v.number(),
-    name: v.string(),
-  });
+
 
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -120,13 +116,16 @@ describe('safeFetch', () => {
     const result = await safeFetch('https://example.com', userSchema);
 
     if (result.ok) {
-      expect.fail('ожидался ok false')
-    };
+      expect.fail('ожидался ok false');
+    }
     expect(result.error).toContain('Ошибка валидации:');
   });
 
   it('возвращает ok: false с текстом системной ошибки, если fetch упал из-за сети или CORS', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('Failed to fetch')),
+    );
 
     const result = await safeFetch('https://example.com', userSchema);
 
@@ -155,7 +154,10 @@ describe('safeFetch', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const options: RequestInit = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    };
     await safeFetch('https://example.com', userSchema, options);
 
     expect(fetchMock).toHaveBeenCalledWith('https://example.com', options);

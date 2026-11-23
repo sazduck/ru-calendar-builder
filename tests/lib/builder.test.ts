@@ -25,28 +25,28 @@ describe('getCalendarDay', () => {
   it('возвращает dayOff для сб и вс', () => {
     const saturday = get2024CalendarDay('2024-01-13');
     expect(saturday.type).toBe('dayOff');
-    assert(saturday.reason)
-    expect(saturday.reason.type).toBe('weekend')
+    assert(saturday.reason);
+    expect(saturday.reason.type).toBe('weekend');
 
     const sunday = get2024CalendarDay('2024-01-14');
     expect(sunday.type).toBe('dayOff');
-    assert(sunday.reason)
-    expect(sunday.reason.type).toBe('weekend')
+    assert(sunday.reason);
+    expect(sunday.reason.type).toBe('weekend');
   });
 
   it('возвращает dayOff для праздника', () => {
     const day = get2024CalendarDay('2024-01-01');
 
     expect(day.type).toBe('dayOff');
-    assert(day.reason)
-    expect(day.reason.type).toBe('holiday')
+    assert(day.reason);
+    expect(day.reason.type).toBe('holiday');
   });
 
   it('возвращает dayOff для перенсенного праздника', () => {
     const day = get2024CalendarDay('2024-01-07');
 
     expect(day.type).toBe('dayOff');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('holiday');
   });
 
@@ -54,7 +54,7 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-04-29');
 
     expect(day.type).toBe('dayOff');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('transfer');
   });
 
@@ -62,7 +62,7 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-04-30');
 
     expect(day.type).toBe('dayOff');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('transfer');
   });
 
@@ -70,7 +70,7 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-11-03');
 
     expect(day.type).toBe('dayOff');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('weekend');
   });
 
@@ -78,7 +78,7 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-04-27');
 
     expect(day.type).toBe('working');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('transfer');
   });
 
@@ -86,7 +86,7 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-02-22');
 
     expect(day.type).toBe('shortened');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('preholiday');
   });
 
@@ -94,15 +94,14 @@ describe('getCalendarDay', () => {
     const day = get2024CalendarDay('2024-11-02');
 
     expect(day.type).toBe('shortened');
-    assert(day.reason)
+    assert(day.reason);
     expect(day.reason.type).toBe('transfer');
   });
-
 });
 
 describe('buildCalendar', () => {
   it('возвращает корректные данные', () => {
-    const calendar = buildCalendar(2024, transfers2024)
+    const calendar = buildCalendar(2024, transfers2024);
     expect(calendar).toEqual(calendarExpected2024);
   });
 });

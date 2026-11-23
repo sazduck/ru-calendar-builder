@@ -3,7 +3,7 @@
     "paths": {
       "@lib/*": ["./src/lib/*"],
       "@bin/*": ["./src/bin/*"],
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*"]
     },
 
     "moduleResolution": "bundler",
@@ -27,8 +27,8 @@
 
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
+    "sourceMap": true
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }

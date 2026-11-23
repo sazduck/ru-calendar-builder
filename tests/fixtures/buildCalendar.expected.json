@@ -1,12 +1,44 @@
 [
-  { "date": "2024-01-01", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новый год" } },
-  { "date": "2024-01-02", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
-  { "date": "2024-01-03", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
-  { "date": "2024-01-04", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
-  { "date": "2024-01-05", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
-  { "date": "2024-01-06", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
-  { "date": "2024-01-07", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Рождество Христово" } },
-  { "date": "2024-01-08", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" } },
+  {
+    "date": "2024-01-01",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новый год" }
+  },
+  {
+    "date": "2024-01-02",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
+  {
+    "date": "2024-01-03",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
+  {
+    "date": "2024-01-04",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
+  {
+    "date": "2024-01-05",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
+  {
+    "date": "2024-01-06",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
+  {
+    "date": "2024-01-07",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Рождество Христово" }
+  },
+  {
+    "date": "2024-01-08",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Новогодние каникулы" }
+  },
   { "date": "2024-01-09", "type": "working" },
   { "date": "2024-01-10", "type": "working" },
   { "date": "2024-01-11", "type": "working" },
@@ -51,8 +83,19 @@
   { "date": "2024-02-19", "type": "working" },
   { "date": "2024-02-20", "type": "working" },
   { "date": "2024-02-21", "type": "working" },
-  { "date": "2024-02-22", "type": "shortened", "reason": { "type": "preholiday", "holidayName": "День защитника Отечества" } },
-  { "date": "2024-02-23", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "День защитника Отечества" } },
+  {
+    "date": "2024-02-22",
+    "type": "shortened",
+    "reason": {
+      "type": "preholiday",
+      "holidayName": "День защитника Отечества"
+    }
+  },
+  {
+    "date": "2024-02-23",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "День защитника Отечества" }
+  },
   { "date": "2024-02-24", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-02-25", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-02-26", "type": "working" },
@@ -65,8 +108,19 @@
   { "date": "2024-03-04", "type": "working" },
   { "date": "2024-03-05", "type": "working" },
   { "date": "2024-03-06", "type": "working" },
-  { "date": "2024-03-07", "type": "shortened", "reason": { "type": "preholiday", "holidayName": "Международный женский день" } },
-  { "date": "2024-03-08", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Международный женский день" } },
+  {
+    "date": "2024-03-07",
+    "type": "shortened",
+    "reason": {
+      "type": "preholiday",
+      "holidayName": "Международный женский день"
+    }
+  },
+  {
+    "date": "2024-03-08",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Международный женский день" }
+  },
   { "date": "2024-03-09", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-03-10", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-03-11", "type": "working" },
@@ -116,20 +170,48 @@
   { "date": "2024-04-24", "type": "working" },
   { "date": "2024-04-25", "type": "working" },
   { "date": "2024-04-26", "type": "working" },
-  { "date": "2024-04-27", "type": "working", "reason": { "type": "transfer", "dir": "to", "src": "2024-04-29" } },
+  {
+    "date": "2024-04-27",
+    "type": "working",
+    "reason": { "type": "transfer", "dir": "to", "src": "2024-04-29" }
+  },
   { "date": "2024-04-28", "type": "dayOff", "reason": { "type": "weekend" } },
-  { "date": "2024-04-29", "type": "dayOff", "reason": { "type": "transfer", "dir": "from", "src": "2024-04-27" } },
-  { "date": "2024-04-30", "type": "dayOff", "reason": { "type": "transfer", "dir": "from", "src": "2024-11-02" } },
-  { "date": "2024-05-01", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "Праздник Весны и Труда" } },
+  {
+    "date": "2024-04-29",
+    "type": "dayOff",
+    "reason": { "type": "transfer", "dir": "from", "src": "2024-04-27" }
+  },
+  {
+    "date": "2024-04-30",
+    "type": "dayOff",
+    "reason": { "type": "transfer", "dir": "from", "src": "2024-11-02" }
+  },
+  {
+    "date": "2024-05-01",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "Праздник Весны и Труда" }
+  },
   { "date": "2024-05-02", "type": "working" },
   { "date": "2024-05-03", "type": "working" },
   { "date": "2024-05-04", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-05-05", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-05-06", "type": "working" },
   { "date": "2024-05-07", "type": "working" },
-  { "date": "2024-05-08", "type": "shortened", "reason": { "type": "preholiday", "holidayName": "День Победы" } },
-  { "date": "2024-05-09", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "День Победы" } },
-  { "date": "2024-05-10", "type": "dayOff", "reason": { "type": "transfer", "dir": "from", "src": "2024-01-06" } },
+  {
+    "date": "2024-05-08",
+    "type": "shortened",
+    "reason": { "type": "preholiday", "holidayName": "День Победы" }
+  },
+  {
+    "date": "2024-05-09",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "День Победы" }
+  },
+  {
+    "date": "2024-05-10",
+    "type": "dayOff",
+    "reason": { "type": "transfer", "dir": "from", "src": "2024-01-06" }
+  },
   { "date": "2024-05-11", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-05-12", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-05-13", "type": "working" },
@@ -161,8 +243,16 @@
   { "date": "2024-06-08", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-06-09", "type": "dayOff", "reason": { "type": "weekend" } },
   { "date": "2024-06-10", "type": "working" },
-  { "date": "2024-06-11", "type": "shortened", "reason": { "type": "preholiday", "holidayName": "День России" } },
-  { "date": "2024-06-12", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "День России" } },
+  {
+    "date": "2024-06-11",
+    "type": "shortened",
+    "reason": { "type": "preholiday", "holidayName": "День России" }
+  },
+  {
+    "date": "2024-06-12",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "День России" }
+  },
   { "date": "2024-06-13", "type": "working" },
   { "date": "2024-06-14", "type": "working" },
   { "date": "2024-06-15", "type": "dayOff", "reason": { "type": "weekend" } },
@@ -305,9 +395,17 @@
   { "date": "2024-10-30", "type": "working" },
   { "date": "2024-10-31", "type": "working" },
   { "date": "2024-11-01", "type": "working" },
-  { "date": "2024-11-02", "type": "shortened", "reason": { "type": "transfer", "dir": "to", "src": "2024-04-30" } },
+  {
+    "date": "2024-11-02",
+    "type": "shortened",
+    "reason": { "type": "transfer", "dir": "to", "src": "2024-04-30" }
+  },
   { "date": "2024-11-03", "type": "dayOff", "reason": { "type": "weekend" } },
-  { "date": "2024-11-04", "type": "dayOff", "reason": { "type": "holiday", "holidayName": "День народного единства" } },
+  {
+    "date": "2024-11-04",
+    "type": "dayOff",
+    "reason": { "type": "holiday", "holidayName": "День народного единства" }
+  },
   { "date": "2024-11-05", "type": "working" },
   { "date": "2024-11-06", "type": "working" },
   { "date": "2024-11-07", "type": "working" },
@@ -361,8 +459,20 @@
   { "date": "2024-12-25", "type": "working" },
   { "date": "2024-12-26", "type": "working" },
   { "date": "2024-12-27", "type": "working" },
-  { "date": "2024-12-28", "type": "working", "reason": { "type": "transfer", "dir": "to", "src": "2024-12-30" } },
+  {
+    "date": "2024-12-28",
+    "type": "working",
+    "reason": { "type": "transfer", "dir": "to", "src": "2024-12-30" }
+  },
   { "date": "2024-12-29", "type": "dayOff", "reason": { "type": "weekend" } },
-  { "date": "2024-12-30", "type": "dayOff", "reason": { "type": "transfer", "dir": "from", "src": "2024-12-28" } },
-  { "date": "2024-12-31", "type": "dayOff", "reason": { "type": "transfer", "dir": "from", "src": "2024-01-07" } }
+  {
+    "date": "2024-12-30",
+    "type": "dayOff",
+    "reason": { "type": "transfer", "dir": "from", "src": "2024-12-28" }
+  },
+  {
+    "date": "2024-12-31",
+    "type": "dayOff",
+    "reason": { "type": "transfer", "dir": "from", "src": "2024-01-07" }
+  }
 ]

@@ -1,7 +1,6 @@
 import { MONTHS } from './constants';
-import type { YearTransfers } from './schemas';
-import type { DayOffTransfer, Result } from './types';
-import { err, ok } from './helper';
+import type { DayOffTransfer, Result, YearTransfers } from './types';
+import { err, ok } from './helpers';
 const TRANSFERS_REGEX =
   /с\s+[а-я]+\s+(?<dayFrom>\d{1,2})\s+(?<monthFrom>[а-я]+).*?на\s+[а-я]+\s+(?<dayTo>\d{1,2})\s+(?<monthTo>[а-я]+)/gm;
 const YEAR_REGEX = /\d{4}/;

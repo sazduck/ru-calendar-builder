@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { execute, parseTransfersJson, type RunConfig, createRunConfig } from '@bin/runner';
+import {
+  execute,
+  parseTransfersJson,
+  type RunConfig,
+  createRunConfig,
+} from '@bin/runner';
 import type { Day } from '@lib/types';
 
 function createReader(input: string): Readable {
@@ -30,7 +35,11 @@ describe('execute', () => {
     const { writer, getOutput } = createWriter();
 
     const reader = createReader(input);
-    await execute(reader, writer, createRunConfig('parse', {mode: {type: 'transfers-only'}}));
+    await execute(
+      reader,
+      writer,
+      createRunConfig('parse', { mode: { type: 'transfers-only' } }),
+    );
 
     expect(JSON.parse(getOutput())).toEqual({
       year: 2024,
@@ -57,10 +66,7 @@ describe('execute', () => {
 
     const { writer, getOutput } = createWriter();
     const reader = createReader(input);
-    const config = createRunConfig(
-      'parse',
-      { transfersInput: true },
-    );
+    const config = createRunConfig('parse', { transfersInput: true });
     await execute(reader, writer, config);
 
     const outputRaw = getOutput();
@@ -85,10 +91,9 @@ describe('execute', () => {
     const { writer, getOutput } = createWriter();
 
     const reader = createReader(input);
-    const opts = createRunConfig(
-      'parse',
-      {mode: {type: 'calendar', filter: 'special-only'}},
-    );
+    const opts = createRunConfig('parse', {
+      mode: { type: 'calendar', filter: 'special-only' },
+    });
 
     await execute(reader, writer, opts);
 

@@ -2,7 +2,6 @@ import { parseTransfers } from '@/lib/parser';
 import type { DayOffTransfer } from '@/lib/types';
 import { describe, expect, it } from 'vitest';
 
-
 describe('parseTransfers', () => {
   it('возвращает корректные данные', async () => {
     const str = `Перенести в 2026 году следующие выходные дни:
@@ -11,7 +10,7 @@ describe('parseTransfers', () => {
     const result = parseTransfers(str);
     expect(result.ok).toBe(true);
     if (!result.ok) {
-      expect.fail()
+      expect.fail();
     }
     expect(result.value.transfers).toEqual([
       { from: '2026-01-03', to: '2026-01-09' },
@@ -24,22 +23,25 @@ describe('parseTransfers', () => {
     const result = parseTransfers('Текст без года');
     expect(result.ok).toBe(false);
     if (result.ok) {
-      expect.fail()
+      expect.fail();
     }
     expect(result.error).toContain('год');
-
   });
   it('возвращает ошибку при нахождении неверного числа', () => {
-    const result = parseTransfers('1337 год с мурзика 42 мямуня на ковырика 10 мяубря');
+    const result = parseTransfers(
+      '1337 год с мурзика 42 мямуня на ковырика 10 мяубря',
+    );
     if (result.ok) {
-      expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
+      expect.fail('ожидалась ошибка парсинга, но функция вернула успех');
     }
     expect(result.error).toContain('Неверное число');
   });
   it('возвращает ошибку при нахождении неизвестного месяца', () => {
-    const result = parseTransfers('1337 год с мурзика 31 мямуня на ковырика 10 мяубря');
+    const result = parseTransfers(
+      '1337 год с мурзика 31 мямуня на ковырика 10 мяубря',
+    );
     if (result.ok) {
-      expect.fail('ожидалась ошибка парсинга, но функция вернула успех')
+      expect.fail('ожидалась ошибка парсинга, но функция вернула успех');
     }
     expect(result.error).toContain('Неизвестный месяц');
   });

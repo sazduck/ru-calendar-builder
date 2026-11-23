@@ -36,24 +36,32 @@ export function getReason(
     return { type: 'weekend' };
   }
 
-  const tomrrow = date.add({days: 1})
+  const tomrrow = date.add({ days: 1 });
   const tomorrowMmdd = tomrrow.toPlainMonthDay().toString();
   if (HOLIDAYS[tomorrowMmdd]) {
     return { type: 'preholiday', holidayName: HOLIDAYS[tomorrowMmdd] };
   }
 }
 
-export function getCalendarDay(date: Temporal.PlainDate, transfers: DayOffTransfer[]): Day {
+export function getCalendarDay(
+  date: Temporal.PlainDate,
+  transfers: DayOffTransfer[],
+): Day {
   const isoDate = date.toString();
 
-  const foundTransfer = transfers
-    .find(tr => tr.from === isoDate || tr.to == isoDate)
+  const foundTransfer = transfers.find(
+    tr => tr.from === isoDate || tr.to == isoDate,
+  );
 
-  const transferReason: TransferReason | undefined = foundTransfer
-    ? {
-        type: "transfer",
+  const transferReason: TransferReason | undefined =
+    foundTransfer ?
+      {
+        type: 'transfer',
         dir: foundTransfer.from === isoDate ? 'to' : 'from',
-        src: foundTransfer.from === isoDate ? foundTransfer.to : foundTransfer.from,
+        src:
+          foundTransfer.from === isoDate ?
+            foundTransfer.to
+          : foundTransfer.from,
       }
     : undefined;
 
@@ -61,7 +69,7 @@ export function getCalendarDay(date: Temporal.PlainDate, transfers: DayOffTransf
     return {
       date: isoDate,
       type: 'dayOff',
-      reason: transferReason
+      reason: transferReason,
     };
   }
 
@@ -97,10 +105,9 @@ export function buildCalendar(
   const calendar: Day[] = [];
 
   const startOfYear = new Temporal.PlainDate(year, 1, 1);
-  const totalDays = startOfYear.daysInYear
+  const totalDays = startOfYear.daysInYear;
 
   for (let i = 0; i < totalDays; i++) {
-
     const currentDay = startOfYear.add({ days: i });
     const calendarDay = getCalendarDay(currentDay, transfers);
     calendar.push(calendarDay);

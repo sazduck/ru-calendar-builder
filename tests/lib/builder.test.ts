@@ -42,7 +42,7 @@ describe('getCalendarDay', () => {
     expect(day.reason.type).toBe('holiday');
   });
 
-  it('возвращает dayOff для перенсенного праздника', () => {
+  it('возвращает dayOff для перенесенного праздника', () => {
     const day = get2024CalendarDay('2024-01-07');
 
     expect(day.type).toBe('dayOff');

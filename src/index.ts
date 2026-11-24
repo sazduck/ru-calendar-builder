@@ -3,11 +3,6 @@ export { buildCalendar } from './lib/builder';
 
 export type {
   DayType,
-  HolidayReason,
-  PreholidayReason,
-  WeekendReason,
-  TransferReason,
-  CalendarStatus,
   Day,
   Result,
   PravoGovDocumentResponse,

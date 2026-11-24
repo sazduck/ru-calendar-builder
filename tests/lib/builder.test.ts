@@ -1,9 +1,8 @@
 import { describe, it, expect, assert } from 'vitest';
-import calendarExpected2024 from '../fixtures/buildCalendar.expected.json';
-import { buildCalendar, getCalendarDay } from '@lib/builder';
+import { getCalendarDay } from '@lib/builder';
 import type { DayOffTransfer } from '@lib/types';
 
-const transfers2024: DayOffTransfer[] = [
+export const transfers2024: DayOffTransfer[] = [
   { from: '2024-01-06', to: '2024-05-10' }, // праздник             -> будний
   { from: '2024-01-07', to: '2024-12-31' }, // праздник + выходной  -> будний
   { from: '2024-04-27', to: '2024-04-29' }, // выходной             -> будний
@@ -96,12 +95,5 @@ describe('getCalendarDay', () => {
     expect(day.type).toBe('shortened');
     assert(day.reason);
     expect(day.reason.type).toBe('transfer');
-  });
-});
-
-describe('buildCalendar', () => {
-  it('возвращает корректные данные', () => {
-    const calendar = buildCalendar(2024, transfers2024);
-    expect(calendar).toEqual(calendarExpected2024);
   });
 });

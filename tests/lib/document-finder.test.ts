@@ -1,4 +1,6 @@
-import { fetchEoNumber, safeFetch } from '@lib/pravo';
+import { err, ok } from '@lib/helpers';
+import { fetchEoNumber, safeFetch, type Validator } from '@lib/pravo';
+import type { Result } from '@lib/types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('fetchEoNumber', () => {
@@ -48,9 +50,30 @@ describe('fetchEoNumber', () => {
   });
 });
 
+interface User {
+  id: number;
+  name: string;
+}
+const validateUser: Validator<User> = data => {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return err('Ожидался объект пользователя');
+  }
+
+  if (!('id' in data) || typeof data.id !== 'number') {
+    return err("Поле 'id' отсутствует или не является числом");
+  }
+
+  if (!('name' in data) || typeof data.name !== 'string') {
+    return err("Поле 'name' отсутствует или не является строкой");
+  }
+
+  return ok({
+    id: data.id,
+    name: data.name,
+  });
+};
+
 describe('safeFetch', () => {
-
-
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -63,7 +86,7 @@ describe('safeFetch', () => {
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     expect(result).toEqual({
       ok: true,
@@ -79,7 +102,7 @@ describe('safeFetch', () => {
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     expect(result).toEqual({
       ok: false,
@@ -97,7 +120,7 @@ describe('safeFetch', () => {
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     expect(result).toEqual({
       ok: false,
@@ -113,7 +136,7 @@ describe('safeFetch', () => {
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     if (result.ok) {
       expect.fail('ожидался ok false');
@@ -127,7 +150,7 @@ describe('safeFetch', () => {
       vi.fn().mockRejectedValue(new Error('Failed to fetch')),
     );
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     expect(result).toEqual({
       ok: false,
@@ -138,7 +161,7 @@ describe('safeFetch', () => {
   it('возвращает ok: false с дефолтным текстом, если fetch выбросил ошибку, не являющуюся инстансом Error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue('Строковая ошибка сети'));
 
-    const result = await safeFetch('https://example.com', userSchema);
+    const result = await safeFetch('https://example.com', validateUser);
 
     expect(result).toEqual({
       ok: false,
@@ -158,7 +181,7 @@ describe('safeFetch', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     };
-    await safeFetch('https://example.com', userSchema, options);
+    await safeFetch('https://example.com', validateUser, options);
 
     expect(fetchMock).toHaveBeenCalledWith('https://example.com', options);
   });

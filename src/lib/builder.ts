@@ -1,32 +1,11 @@
 import { HOLIDAYS } from './constants';
-import {
-  type CalendarStatus,
-  type Day,
-  type DayOffTransfer,
-  type DayType,
-  type TransferReason,
-} from './types';
+import { type Day, type DayOffTransfer, type Reason } from './types';
 
 export function isWeekend(date: Temporal.PlainDate): boolean {
   return date.dayOfWeek === 6 || date.dayOfWeek === 7;
 }
-export function getDayType(
-  reason?: Exclude<CalendarStatus, TransferReason>,
-): DayType {
-  switch (reason?.type) {
-    case 'holiday':
-    case 'weekend':
-      return 'dayOff';
-    case 'preholiday':
-      return 'shortened';
-    default:
-      return 'working';
-  }
-}
 
-export function getReason(
-  date: Temporal.PlainDate,
-): Exclude<CalendarStatus, TransferReason> | undefined {
+export function getReason(date: Temporal.PlainDate): Reason | undefined {
   const mmdd = date.toPlainMonthDay().toString();
   if (HOLIDAYS[mmdd]) {
     return { type: 'holiday', holidayName: HOLIDAYS[mmdd] };
@@ -36,11 +15,13 @@ export function getReason(
     return { type: 'weekend' };
   }
 
-  const tomrrow = date.add({ days: 1 });
-  const tomorrowMmdd = tomrrow.toPlainMonthDay().toString();
+  const tomorrow = date.add({ days: 1 });
+  const tomorrowMmdd = tomorrow.toPlainMonthDay().toString();
   if (HOLIDAYS[tomorrowMmdd]) {
     return { type: 'preholiday', holidayName: HOLIDAYS[tomorrowMmdd] };
   }
+
+  return undefined;
 }
 
 export function getCalendarDay(
@@ -48,54 +29,66 @@ export function getCalendarDay(
   transfers: DayOffTransfer[],
 ): Day {
   const isoDate = date.toString();
-
-  const foundTransfer = transfers.find(
-    tr => tr.from === isoDate || tr.to == isoDate,
-  );
-
-  const transferReason: TransferReason | undefined =
-    foundTransfer ?
-      {
-        type: 'transfer',
-        dir: foundTransfer.from === isoDate ? 'to' : 'from',
-        src:
-          foundTransfer.from === isoDate ?
-            foundTransfer.to
-          : foundTransfer.from,
-      }
-    : undefined;
-
-  if (transferReason?.dir == 'from') {
-    return {
-      date: isoDate,
-      type: 'dayOff',
-      reason: transferReason,
-    };
-  }
-
   const reason = getReason(date);
+
   if (reason?.type === 'holiday') {
     return { date: isoDate, type: 'dayOff', reason };
   }
 
-  if (transferReason?.dir === 'to') {
-    const transferDate = Temporal.PlainDate.from(transferReason.src);
-    const transferStatus = getReason(transferDate);
-    const transferType = getDayType(transferStatus);
+  const foundTransfer = transfers.find(
+    tr => tr.from === isoDate || tr.to === isoDate,
+  );
+
+  if (foundTransfer) {
+    const otherDateStr =
+      foundTransfer.from === isoDate ? foundTransfer.to : foundTransfer.from;
+    const transferDate = Temporal.PlainDate.from(otherDateStr);
+
+    return getTransferredDay(date, transferDate);
+  }
+
+  if (reason?.type === 'preholiday') {
+    return { date: isoDate, type: 'shortened', reason };
+  }
+  if (reason?.type === 'weekend') {
+    return { date: isoDate, type: 'dayOff', reason };
+  }
+
+  return { date: isoDate, type: 'working' };
+}
+
+export function getTransferredDay(
+  currentDate: Temporal.PlainDate,
+  transferDate: Temporal.PlainDate,
+): Day {
+  const transferReason = getReason(transferDate);
+  const currentDateStr = currentDate.toString();
+  const transferDateStr = transferDate.toString();
+
+  if (
+    transferReason?.type === 'holiday' ||
+    transferReason?.type === 'weekend'
+  ) {
     return {
-      date: isoDate,
-      type: transferType,
-      reason: transferReason,
+      date: currentDateStr,
+      type: 'dayOff',
+      reason: { type: 'transfer', from: transferDateStr },
     };
   }
 
-  if (reason?.type == 'preholiday') {
-    return { date: isoDate, type: 'shortened', reason: reason };
+  if (transferReason?.type === 'preholiday') {
+    return {
+      date: currentDateStr,
+      type: 'shortened',
+      reason: { type: 'transfer', to: transferDateStr },
+    };
   }
-  if (reason?.type == 'weekend') {
-    return { date: isoDate, type: 'dayOff', reason: reason };
-  }
-  return { date: isoDate, type: 'working' };
+
+  return {
+    date: currentDateStr,
+    type: 'working',
+    reason: { type: 'transfer', to: transferDateStr },
+  };
 }
 
 export function buildCalendar(

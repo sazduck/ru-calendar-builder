@@ -143,7 +143,7 @@ describe('praseJsonTransfers', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toContain('year'); // Проверяем, что Valibot ругнулся на год
+      expect(result.error).toContain('год');
     }
   });
 

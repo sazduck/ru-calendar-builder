@@ -11,27 +11,6 @@ export type Holiday =
   | 'День России'
   | 'День народного единства';
 
-export interface HolidayReason {
-  type: 'holiday';
-  holidayName: Holiday;
-}
-export interface PreholidayReason {
-  type: 'preholiday';
-  holidayName: Holiday;
-}
-export interface WeekendReason {
-  type: 'weekend';
-}
-export interface TransferReason {
-  type: 'transfer';
-  dir: 'to' | 'from';
-  /** @format date */
-  src: string;
-}
-
-export type CalendarStatus =
-  WeekendReason | HolidayReason | PreholidayReason | TransferReason;
-
 export interface DayOffTransfer {
   from: string;
   to: string;
@@ -42,24 +21,40 @@ export interface YearTransfers {
   transfers: DayOffTransfer[];
 }
 
+export interface WorkingReason {
+  type: 'transfer';
+  to: string;
+}
+
+export type ShortenedReason =
+  | { type: 'preholiday'; holidayName: Holiday }
+  | { type: 'transfer'; to: string };
+
+export type DayOffReason =
+  | { type: 'weekend' }
+  | { type: 'holiday'; holidayName: Holiday }
+  | { type: 'transfer'; from: string };
+
+export type Reason = WorkingReason | ShortenedReason | DayOffReason;
+
 export type Day =
   | {
       /** @format date */
       date: string;
       type: 'working';
-      reason?: TransferReason;
+      reason?: WorkingReason;
     }
   | {
       /** @format date */
       date: string;
       type: 'shortened';
-      reason: PreholidayReason | TransferReason;
+      reason: ShortenedReason;
     }
   | {
       /** @format date */
       date: string;
       type: 'dayOff';
-      reason: HolidayReason | WeekendReason | TransferReason;
+      reason: DayOffReason;
     };
 
 export interface DayOffTransfer {

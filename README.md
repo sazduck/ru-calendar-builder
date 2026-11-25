@@ -2,7 +2,7 @@
 
 A zero-dependency TypeScript library and CLI tool for parsing Russian government holiday transfer decrees and generating production calendars for any year.
 
-Powered by the native [`Temporal`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal)) API.
+Powered by the native [`Temporal`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal) API.
 
 ## Features
 

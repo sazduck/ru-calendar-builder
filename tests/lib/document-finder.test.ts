@@ -54,16 +54,16 @@ interface User {
   id: number;
   name: string;
 }
-const validateUser: Validator<User> = (data) => {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) {
-    return err("Ожидался объект пользователя");
+const validateUser: Validator<User> = data => {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return err('Ожидался объект пользователя');
   }
 
-  if (!("id" in data) || typeof data.id !== "number") {
+  if (!('id' in data) || typeof data.id !== 'number') {
     return err("Поле 'id' отсутствует или не является числом");
   }
 
-  if (!("name" in data) || typeof data.name !== "string") {
+  if (!('name' in data) || typeof data.name !== 'string') {
     return err("Поле 'name' отсутствует или не является строкой");
   }
 
@@ -74,7 +74,6 @@ const validateUser: Validator<User> = (data) => {
 };
 
 describe('safeFetch', () => {
-
   afterEach(() => {
     vi.unstubAllGlobals();
   });

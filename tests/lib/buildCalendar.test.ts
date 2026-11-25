@@ -1,6 +1,6 @@
-import { buildCalendar, type DayOffTransfer } from "@/index";
+import { buildCalendar, type DayOffTransfer } from '@/index';
 import calendarExpected2024 from '../fixtures/buildCalendar.expected.json';
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 
 const transfers2024: DayOffTransfer[] = [
   { from: '2024-01-06', to: '2024-05-10' }, // праздник             -> будний

@@ -2,7 +2,7 @@ import { describe, it, expect, assert } from 'vitest';
 import { getCalendarDay } from '@lib/builder';
 import type { DayOffTransfer } from '@lib/types';
 
-export const transfers2024: DayOffTransfer[] = [
+const transfers2024: DayOffTransfer[] = [
   { from: '2024-01-06', to: '2024-05-10' }, // праздник             -> будний
   { from: '2024-01-07', to: '2024-12-31' }, // праздник + выходной  -> будний
   { from: '2024-04-27', to: '2024-04-29' }, // выходной             -> будний

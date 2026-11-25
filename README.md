@@ -17,7 +17,7 @@ This library relies on the standard global **`Temporal`** API:
 
 - **Node.js**: `>= 24.0.0` (or older versions with `--harmony-temporal` / polyfill)
 - **Deno / Bun**: Supported natively in modern versions
-- **Browsers**: Supported in Chrome, Edge, and Firefox (for Safari or older environments, load [`temporal-polyfill`](https://npmjs.com) before importing)
+- **Browsers**: Supported in Chrome, Edge, and Firefox (for Safari or older environments, load [`temporal-polyfill`](https://www.npmjs.com/package/temporal-polyfill) before importing)
 
 ## Installation
 
